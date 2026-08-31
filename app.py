@@ -11,7 +11,7 @@ st.set_page_config(
 
 def truncar_dez_centavos(valor):
     """Arredonda o valor para baixo cortando os centavos finais (ex: 87.29 vira 87.20)"""
-    return math.floor(round(valor, 4) * 10) / 10.0
+    return math.floor(valor * 10) / 10.0
 
 # Estilo visual escuro moderno
 st.markdown(
@@ -93,12 +93,12 @@ if preco_teste_truncado >= 100.0:
     msg = f"*Orçamento - Cat Piercer* 💎\nProcedimento: {procedimento if procedimento else 'Personalizado'}\n\n"
     msg += f"✨ *Valor: R$ {preco_base:.2f}*\n"
     msg += f"(Aceitamos Pix ou Cartão em até 3x sem juros!)\n"
-    msg += f"• 2x sem juros de R$ {truncar_dez_centavos(preco_base/2):.2f}\n"
-    msg += f"• 3x sem juros de R$ {truncar_dez_centavos(preco_base/3):.2f}\n\n"
+    msg += f"• 2x sem juros de R$ {preco_base/2:.2f}\n"
+    msg += f"• 3x sem juros de R$ {preco_base/3:.2f}\n\n"
     msg += "Opções para parcelamento estendido no Cartão:\n"
     for i in range(4, 7):
-        total_cliente = truncar_dez_centavos(preco_base * (1 + tx_repasse[i]))
-        msg += f"• {i}x de R$ {truncar_dez_centavos(total_cliente/i):.2f} (Total: R$ {total_cliente:.2f})\n"
+        total_cliente = preco_base * (1 + tx_repasse[i])
+        msg += f"• {i}x de R$ {total_cliente/i:.2f} (Total: R$ {total_cliente:.2f})\n"
         
 else:
     preco_pix = truncar_dez_centavos(custo_total / (1 - margem))
@@ -117,7 +117,7 @@ else:
     msg += f"💳 *Cartão (1x): R$ {preco_1x:.2f}*\n\n"
     msg += "Opções de parcelamento no Cartão:\n"
     for i in range(2, 4):
-        total_cliente = truncar_dez_centavos(preco_1x * (1 + tx_repasse[i]))
-        msg += f"• {i}x de R$ {truncar_dez_centavos(total_cliente/i):.2f} (Total: R$ {total_cliente:.2f})\n"
+        total_cliente = preco_1x * (1 + tx_repasse[i])
+        msg += f"• {i}x de R$ {total_cliente/i:.2f} (Total: R$ {total_cliente:.2f})\n"
 
 st.text_area("Copiar mensagem para o WhatsApp:", value=msg, height=350)
