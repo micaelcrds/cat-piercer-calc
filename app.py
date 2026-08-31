@@ -1,9 +1,7 @@
 import streamlit as st
 import math
-import os
+import glob
 import base64
-import io
-from PIL import Image
 
 # Configuração da página
 st.set_page_config(
@@ -17,53 +15,54 @@ def truncar_dez_centavos(valor):
     """Arredonda o valor para baixo cortando os centavos finais (ex: 87.29 vira 87.20)"""
     return math.floor(valor * 10) / 10.0
 
-@st.cache_data
-def processar_logo_molde(caminho_imagem="logo.png"):
-    """
-    Usa Python para remover o fundo branco da imagem e criar um molde de máscara.
-    Isso blinda a logo contra conflitos de tema do celular/navegador.
-    """
-    if not os.path.exists(caminho_imagem):
-        return ""
+def renderizar_logo():
+    """Busca automaticamente qualquer imagem PNG no repositório e aplica mesclagem CSS"""
+    # Procura qualquer arquivo .png na pasta
+    png_files = glob.glob("*.png")
     
-    # Abre a imagem e varre os pixels para remover o fundo branco
-    img = Image.open(caminho_imagem).convert("RGBA")
-    datas = img.getdata()
-    novo_dado = []
-    
-    for item in datas:
-        # Calcula a luminosidade do pixel (Branco = 255, Preto = 0)
-        lum = 0.299 * item[0] + 0.587 * item[1] + 0.114 * item[2]
-        # Inverte: O que for branco fica transparente, o que for preto fica opaco
-        alpha = int(255 - lum)
-        novo_dado.append((0, 0, 0, alpha))
+    if not png_files:
+        st.warning("⚠️ Nenhuma imagem PNG foi encontrada. Faça o upload da logo para o GitHub.")
+        return
         
-    img.putdata(novo_dado)
-    buffered = io.BytesIO()
-    img.save(buffered, format="PNG")
-    b64 = base64.b64encode(buffered.getvalue()).decode()
+    caminho_imagem = png_files[0] # Pega a primeira imagem que encontrar
     
-    # Cria uma div preenchida com a cor do texto do site e recorta no formato da logo
-    html_mask = f"""
-    <div style="
-        background-color: var(--text-color);
-        -webkit-mask-image: url('data:image/png;base64,{b64}');
-        -webkit-mask-size: contain;
-        -webkit-mask-repeat: no-repeat;
-        -webkit-mask-position: center;
-        mask-image: url('data:image/png;base64,{b64}');
-        mask-size: contain;
-        mask-repeat: no-repeat;
-        mask-position: center;
-        width: 100%;
-        max-width: 280px;
-        height: 110px;
-        margin: 0 auto 20px auto;
-    "></div>
-    """
-    return html_mask
+    with open(caminho_imagem, "rb") as f:
+        data = f.read()
+    b64 = base64.b64encode(data).decode()
+    
+    st.markdown(
+        f"""
+        <style>
+        .logo-cat {{
+            display: block;
+            margin: 0 auto 20px auto;
+            max-width: 280px;
+            width: 100%;
+        }}
+        
+        /* Tema Claro: Remove fundo branco, mantém linhas pretas */
+        @media (prefers-color-scheme: light) {{
+            .logo-cat {{
+                filter: none;
+                mix-blend-mode: multiply;
+            }}
+        }}
+        
+        /* Tema Escuro: Inverte linhas para branco, remove fundo preto */
+        @media (prefers-color-scheme: dark) {{
+            .logo-cat {{
+                filter: invert(1);
+                mix-blend-mode: screen;
+            }}
+        }}
+        </style>
+        
+        <img class="logo-cat" src="data:image/png;base64,{b64}" alt="Logo Cat Piercing">
+        """,
+        unsafe_allow_html=True
+    )
 
-# Estilos CSS Limpos
+# Estilos da caixa de resultados
 st.markdown(
     """
     <style>
@@ -80,8 +79,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Renderiza a logo processada matematicamente
-st.markdown(processar_logo_molde("logo.png"), unsafe_allow_html=True)
+# Chama a função que detecta e renderiza a logo automaticamente
+renderizar_logo()
 
 st.markdown(
     "<h3 style='text-align: center; margin-top: -10px;'>Simulador de Preço</h3>",
