@@ -3,6 +3,7 @@ import math
 import os
 import base64
 
+# Configuração da página
 st.set_page_config(
     page_title="Cat Piercer - Precificação",
     page_icon="💎",
@@ -15,36 +16,63 @@ def truncar_dez_centavos(valor):
     return math.floor(valor * 10) / 10.0
 
 def renderizar_logo(caminho_imagem="logo.png"):
-    """Usa máscara CSS para preencher a logo com a cor nativa do texto do tema atual"""
+    """Renderiza a logo com tratamento avançado de mesclagem para fundos brancos/transparentes"""
     if os.path.exists(caminho_imagem):
         with open(caminho_imagem, "rb") as f:
             data = f.read()
         b64 = base64.b64encode(data).decode()
         st.markdown(
             f"""
-            <div style="
-                background-color: var(--text-color);
-                -webkit-mask-image: url('data:image/png;base64,{b64}');
-                -webkit-mask-size: contain;
-                -webkit-mask-repeat: no-repeat;
-                -webkit-mask-position: center;
-                mask-image: url('data:image/png;base64,{b64}');
-                mask-size: contain;
-                mask-repeat: no-repeat;
-                mask-position: center;
-                width: 100%;
-                max-width: 280px;
-                height: 110px;
-                margin: 0 auto 20px auto;
-            "></div>
+            <div class="logo-container">
+                <img class="logo-cat" src="data:image/png;base64,{b64}" alt="Cat Piercing Logo">
+            </div>
             """,
             unsafe_allow_html=True,
         )
 
+# Estilos CSS com suporte infalível a troca de tema
 st.markdown(
     """
     <style>
-    /* Fundo flexível com rgba para funcionar tanto no tema Claro quanto no Escuro */
+    .logo-container {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    .logo-cat {
+        max-width: 280px;
+        width: 100%;
+        transition: filter 0.3s ease;
+    }
+
+    /* 1. MODO CLARO PADRÃO: Remove fundo branco, mantém linhas pretas */
+    .logo-cat {
+        filter: none;
+        mix-blend-mode: multiply;
+    }
+
+    /* 2. MODO ESCURO (Pelo Sistema OS): Inverte linhas para branco, remove fundo preto */
+    @media (prefers-color-scheme: dark) {
+        .logo-cat {
+            filter: invert(1);
+            mix-blend-mode: screen;
+        }
+    }
+
+    /* 3. MODO ESCURO (Forçado no botão do Streamlit) */
+    [data-theme="dark"] .logo-cat,
+    .stApp[data-theme="dark"] .logo-cat {
+        filter: invert(1) !important;
+        mix-blend-mode: screen !important;
+    }
+
+    /* 4. MODO CLARO (Forçado no botão do Streamlit) */
+    [data-theme="light"] .logo-cat,
+    .stApp[data-theme="light"] .logo-cat {
+        filter: none !important;
+        mix-blend-mode: multiply !important;
+    }
+
     .info-box { 
         padding: 15px; 
         border-radius: 8px; 
@@ -58,7 +86,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Renderiza a logo moldada
+# Renderiza a logo no topo
 renderizar_logo("logo.png")
 
 st.markdown(
