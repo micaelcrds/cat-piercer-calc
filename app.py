@@ -16,36 +16,62 @@ def truncar_dez_centavos(valor):
   return math.floor(valor * 10) / 10.0
 
 def renderizar_logo(caminho_imagem="logo.png"):
-  """Carrega e exibe a logo com inversão de cor automática para o modo escuro"""
+  """Carrega e renderiza a imagem da logo em base64"""
   if os.path.exists(caminho_imagem):
     with open(caminho_imagem, "rb") as f:
       data = f.read()
     b64 = base64.b64encode(data).decode()
     st.markdown(
         f"""
-        <div style="text-align: center; margin-bottom: 25px;">
-            <img class="logo-cat" src="data:image/png;base64,{b64}" alt="Cat Piercing Logo" style="max-width: 280px; width: 100%;">
+        <div class="logo-container">
+            <img class="logo-cat" src="data:image/png;base64,{b64}" alt="Cat Piercing Logo">
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-# Estilo CSS adaptável ao tema claro/escuro
+# Estilos CSS com sincronização precisa de tema Claro / Escuro
 st.markdown(
     """
     <style>
-    /* Inverte as cores da logo apenas quando o tema for escuro */
+    .logo-container {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    .logo-cat {
+        max-width: 280px;
+        width: 100%;
+        transition: filter 0.3s ease;
+    }
+
+    /* Regra padrão: Modo Claro (linhas pretas naturais) */
+    .logo-cat {
+        filter: none;
+    }
+
+    /* Modo Escuro do Streamlit (inverte para linhas brancas) */
+    [data-theme="dark"] .logo-cat,
+    .stApp[data-theme="dark"] .logo-cat,
+    [data-testid="stAppViewContainer"][data-theme="dark"] .logo-cat {
+        filter: invert(1) brightness(1.2) !important;
+    }
+
+    /* Modo Claro forçado do Streamlit */
+    [data-theme="light"] .logo-cat,
+    .stApp[data-theme="light"] .logo-cat,
+    [data-testid="stAppViewContainer"][data-theme="light"] .logo-cat {
+        filter: none !important;
+    }
+
+    /* Fallback para sistema operacional caso o Streamlit use o tema Auto */
     @media (prefers-color-scheme: dark) {
-        .logo-cat {
+        body:not([data-theme="light"]) .logo-cat,
+        .stApp:not([data-theme="light"]) .logo-cat {
             filter: invert(1) brightness(1.2);
         }
     }
-    
-    /* Suporte explícito caso o usuário altere as configurações de tema no Streamlit */
-    [data-theme="dark"] .logo-cat {
-        filter: invert(1) brightness(1.2);
-    }
-    
+
     .info-box { 
         padding: 15px; 
         border-radius: 8px; 
@@ -63,7 +89,7 @@ st.markdown(
 renderizar_logo("logo.png")
 
 st.markdown(
-    "<h3 style='text-align: center; margin-top: -15px;'>Simulador de"
+    "<h3 style='text-align: center; margin-top: -10px;'>Simulador de"
     " Preço</h3>",
     unsafe_allow_html=True,
 )
