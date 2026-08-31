@@ -86,14 +86,12 @@ procedimento = st.text_input("Nome do Procedimento", placeholder="Ex: Conch, Hel
 # --- SISTEMA DINÂMICO DE JOIAS ---
 st.markdown("#### 💎 Joias Utilizadas")
 
-# Inicializa o contador de tipos de joias na memória da página
 if 'qtd_tipos_joias' not in st.session_state:
     st.session_state.qtd_tipos_joias = 1
 
 custo_total_joias = 0
 info_joias_list = []
 
-# Gera os campos para cada joia dinamicamente
 for i in range(st.session_state.qtd_tipos_joias):
     with st.container():
         st.markdown(f"**Item {i+1}**")
@@ -113,7 +111,6 @@ for i in range(st.session_state.qtd_tipos_joias):
         elif valor > 0:
             info_joias_list.append(f"{qtd}x Joia Padrão")
 
-# Botões para adicionar ou remover itens
 colA, colB = st.columns(2)
 with colA:
     if st.button("➕ Adicionar outra joia"):
@@ -130,7 +127,6 @@ custo_total = custo_operacional_base + custo_total_joias
 
 # Taxas
 margem = 0.20
-tx_1x_total = 0.0419
 tx_3x_absorvida = 0.0699
 
 tx_repasse = {
@@ -147,7 +143,6 @@ preco_teste_truncado = truncar_dez_centavos(preco_teste)
 st.divider()
 st.subheader("💡 Resultado da Precificação")
 
-# Preparação das joias em formato de tópicos para o WhatsApp
 info_joia_str = ""
 if info_joias_list:
     info_joia_str = "💍 *Joias inclusas:*\n"
@@ -180,14 +175,14 @@ if preco_teste_truncado >= 100.0:
         msg += f"• {i}x de R$ {total_cliente/i:.2f} (Total: R$ {total_cliente:.2f})\n"
         
 else:
-    preco_pix = truncar_dez_centavos(custo_total / (1 - margem))
-    preco_1x = truncar_dez_centavos(custo_total / (1 - margem - tx_1x_total))
+    # Preço base único para Pix e 1x (Catarina absorve os 4,19% do crédito à vista)
+    preco_base = truncar_dez_centavos(custo_total / (1 - margem))
     
     st.markdown(f"""
     <div class="info-box">
         <h4 style="margin:0; color:#ff4b4b;">📉 COMPRA ABAIXO DE R$ 100</h4>
-        <p style="margin:5px 0 0 0; font-size:14px;">Os valores mudam para absorver as taxas específicas.<br>
-        Na máquina, digite <b>R$ {preco_1x:.2f}</b>. Se a cliente quiser parcelar (2x ou 3x), ative a chave de repasse.</p>
+        <p style="margin:5px 0 0 0; font-size:14px;">A taxa de 1x (4,19%) não é repassada ao cliente.<br>
+        Na máquina, digite <b>R$ {preco_base:.2f}</b>. Para 2x ou 3x, ative a chave de repasse.</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -195,11 +190,11 @@ else:
     msg += f"📍 *Procedimento:* {procedimento if procedimento else 'Personalizado'}\n"
     if info_joias_list:
         msg += f"{info_joia_str}"
-    msg += f"\n✨ *Investimento (Pix): R$ {preco_pix:.2f}*\n"
-    msg += f"💳 *Investimento (Cartão 1x): R$ {preco_1x:.2f}*\n\n"
+    msg += f"\n✨ *Investimento: R$ {preco_base:.2f}*\n"
+    msg += f"(Valor único para pagamento no Pix ou 1x no Cartão)\n\n"
     msg += f"🔄 *Opções de parcelamento no Cartão:*\n"
     for i in range(2, 4):
-        total_cliente = preco_1x * (1 + tx_repasse[i])
+        total_cliente = preco_base * (1 + tx_repasse[i])
         msg += f"• {i}x de R$ {total_cliente/i:.2f} (Total: R$ {total_cliente:.2f})\n"
 
 st.text_area("Copiar mensagem para o WhatsApp:", value=msg, height=450)
