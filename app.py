@@ -147,9 +147,12 @@ preco_teste_truncado = truncar_dez_centavos(preco_teste)
 st.divider()
 st.subheader("💡 Resultado da Precificação")
 
+# Preparação das joias em formato de tópicos para o WhatsApp
 info_joia_str = ""
 if info_joias_list:
-    info_joia_str = f"\nJoias: " + ", ".join(info_joias_list)
+    info_joia_str = "💍 *Joias inclusas:*\n"
+    for joia in info_joias_list:
+        info_joia_str += f" ▫️ {joia}\n"
 
 if preco_teste_truncado >= 100.0:
     preco_base = preco_teste_truncado
@@ -162,12 +165,16 @@ if preco_teste_truncado >= 100.0:
     </div>
     """, unsafe_allow_html=True)
     
-    msg = f"*Orçamento - Cat Piercer* 💎\nProcedimento: {procedimento if procedimento else 'Personalizado'}{info_joia_str}\n\n"
-    msg += f"✨ *Valor: R$ {preco_base:.2f}*\n"
-    msg += f"(Aceitamos Pix ou Cartão em até 3x sem juros!)\n"
-    msg += f"• 2x sem juros de R$ {preco_base/2:.2f}\n"
-    msg += f"• 3x sem juros de R$ {preco_base/3:.2f}\n\n"
-    msg += "Opções para parcelamento estendido no Cartão:\n"
+    msg = f"*Orçamento - Cat Piercer* 💎\n\n"
+    msg += f"📍 *Procedimento:* {procedimento if procedimento else 'Personalizado'}\n"
+    if info_joias_list:
+        msg += f"{info_joia_str}"
+    msg += f"\n✨ *Investimento Total: R$ {preco_base:.2f}*\n\n"
+    msg += f"💳 *Pagamento (Pix ou Cartão sem juros):*\n"
+    msg += f"• À vista (Pix ou 1x no Cartão)\n"
+    msg += f"• 2x de R$ {preco_base/2:.2f} sem juros\n"
+    msg += f"• 3x de R$ {preco_base/3:.2f} sem juros\n\n"
+    msg += f"🔄 *Parcelamento estendido (com acréscimo da maquininha):*\n"
     for i in range(4, 7):
         total_cliente = preco_base * (1 + tx_repasse[i])
         msg += f"• {i}x de R$ {total_cliente/i:.2f} (Total: R$ {total_cliente:.2f})\n"
@@ -184,12 +191,15 @@ else:
     </div>
     """, unsafe_allow_html=True)
     
-    msg = f"*Orçamento - Cat Piercer* 💎\nProcedimento: {procedimento if procedimento else 'Personalizado'}{info_joia_str}\n\n"
-    msg += f"✨ *Pix: R$ {preco_pix:.2f}*\n"
-    msg += f"💳 *Cartão (1x): R$ {preco_1x:.2f}*\n\n"
-    msg += "Opções de parcelamento no Cartão:\n"
+    msg = f"*Orçamento - Cat Piercer* 💎\n\n"
+    msg += f"📍 *Procedimento:* {procedimento if procedimento else 'Personalizado'}\n"
+    if info_joias_list:
+        msg += f"{info_joia_str}"
+    msg += f"\n✨ *Investimento (Pix): R$ {preco_pix:.2f}*\n"
+    msg += f"💳 *Investimento (Cartão 1x): R$ {preco_1x:.2f}*\n\n"
+    msg += f"🔄 *Opções de parcelamento no Cartão:*\n"
     for i in range(2, 4):
         total_cliente = preco_1x * (1 + tx_repasse[i])
         msg += f"• {i}x de R$ {total_cliente/i:.2f} (Total: R$ {total_cliente:.2f})\n"
 
-st.text_area("Copiar mensagem para o WhatsApp:", value=msg, height=350)
+st.text_area("Copiar mensagem para o WhatsApp:", value=msg, height=450)
