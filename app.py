@@ -18,21 +18,22 @@ def truncar_dez_centavos(valor):
 st.markdown(
     """
     <style>
-    /* Cartão de Destaque da Logo: Imune a bugs de Modo Escuro/Claro */
+    /* Ajusta o cartão da logo para ficar compacto e centralizado */
     [data-testid="stImage"] {
         background-color: #ffffff !important;
-        padding: 20px;
+        padding: 15px !important;
         border-radius: 16px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        margin: 0 auto 30px auto;
+        margin: 0 auto !important;
         display: flex;
         justify-content: center;
-        max-width: 320px;
+        align-items: center;
+        width: fit-content !important;
     }
     
     [data-testid="stImage"] img {
-        max-width: 250px !important;
-        /* O multiply garante que o fundo da sua imagem se funda perfeitamente com o cartão branco */
+        max-height: 130px !important; /* Trava a altura para impedir que a logo vertical fique gigante */
+        width: auto !important;
         mix-blend-mode: multiply !important; 
         filter: none !important;
     }
@@ -50,14 +51,16 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Renderiza a logo usando a função nativa do Streamlit
+# Renderiza a logo usando colunas para garantir a centralização no meio da página
 if os.path.exists("logo.png"):
-    st.image("logo.png")
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col2:
+        st.image("logo.png")
 else:
     st.warning("⚠️ Imagem não encontrada. Verifique se o arquivo se chama exatamente 'logo.png' no GitHub.")
 
 st.markdown(
-    "<h3 style='text-align: center; margin-top: -10px;'>Simulador de Preço</h3>",
+    "<h3 style='text-align: center; margin-top: 10px;'>Simulador de Preço</h3>",
     unsafe_allow_html=True,
 )
 st.markdown(
@@ -115,7 +118,7 @@ if preco_teste_truncado >= 100.0:
     </div>
     """, unsafe_allow_html=True)
     
-    msg = f"*Orçamento - Cat Piercing* 💎\nProcedimento: {procedimento if procedimento else 'Personalizado'}\n\n"
+    msg = f"*Orçamento - Cat Piercer* 💎\nProcedimento: {procedimento if procedimento else 'Personalizado'}\n\n"
     msg += f"✨ *Valor: R$ {preco_base:.2f}*\n"
     msg += f"(Aceitamos Pix ou Cartão em até 3x sem juros!)\n"
     msg += f"• 2x sem juros de R$ {preco_base/2:.2f}\n"
@@ -137,7 +140,7 @@ else:
     </div>
     """, unsafe_allow_html=True)
     
-    msg = f"*Orçamento - Cat Piercing* 💎\nProcedimento: {procedimento if procedimento else 'Personalizado'}\n\n"
+    msg = f"*Orçamento - Cat Piercer* 💎\nProcedimento: {procedimento if procedimento else 'Personalizado'}\n\n"
     msg += f"✨ *Pix: R$ {preco_pix:.2f}*\n"
     msg += f"💳 *Cartão (1x): R$ {preco_1x:.2f}*\n\n"
     msg += "Opções de parcelamento no Cartão:\n"
