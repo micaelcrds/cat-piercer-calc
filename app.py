@@ -145,7 +145,8 @@ st.subheader("💡 Resultado da Precificação")
 
 info_joia_str = ""
 if info_joias_list:
-    info_joia_str = "💍 *Joias inclusas:*\n"
+    # O \n no início garante o espaço vazio entre o procedimento e as joias
+    info_joia_str = "\n💍 *Joias inclusas:*\n"
     for joia in info_joias_list:
         info_joia_str += f" ▫️ {joia}\n"
 
@@ -175,7 +176,6 @@ if preco_teste_truncado >= 100.0:
         msg += f"• {i}x de R$ {total_cliente/i:.2f} (Total: R$ {total_cliente:.2f})\n"
         
 else:
-    # Preço base único para Pix e 1x (Catarina absorve os 4,19% do crédito à vista)
     preco_base = truncar_dez_centavos(custo_total / (1 - margem))
     
     st.markdown(f"""
@@ -197,4 +197,5 @@ else:
         total_cliente = preco_base * (1 + tx_repasse[i])
         msg += f"• {i}x de R$ {total_cliente/i:.2f} (Total: R$ {total_cliente:.2f})\n"
 
-st.text_area("Copiar mensagem para o WhatsApp:", value=msg, height=450)
+st.markdown("Copie a mensagem abaixo para enviar à cliente:")
+st.code(msg, language="markdown")
