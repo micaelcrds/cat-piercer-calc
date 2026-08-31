@@ -2,6 +2,8 @@ import streamlit as st
 import math
 import os
 import base64
+import io
+from PIL import Image
 
 # Configuração da página
 st.set_page_config(
@@ -15,80 +17,56 @@ def truncar_dez_centavos(valor):
     """Arredonda o valor para baixo cortando os centavos finais (ex: 87.29 vira 87.20)"""
     return math.floor(valor * 10) / 10.0
 
-def renderizar_logo(caminho_imagem="logo.png"):
-    """Renderiza duas versões da logo e usa CSS para alternar entre elas sem conflito com o OS"""
-    if os.path.exists(caminho_imagem):
-        with open(caminho_imagem, "rb") as f:
-            data = f.read()
-        b64 = base64.b64encode(data).decode()
-        st.markdown(
-            f"""
-            <div class="logo-container">
-                <!-- Versão Modo Claro -->
-                <img class="logo-cat logo-light" src="data:image/png;base64,{b64}" alt="Cat Piercing Logo">
-                <!-- Versão Modo Escuro -->
-                <img class="logo-cat logo-dark" src="data:image/png;base64,{b64}" alt="Cat Piercing Logo">
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+@st.cache_data
+def processar_logo_molde(caminho_imagem="logo.png"):
+    """
+    Usa Python para remover o fundo branco da imagem e criar um molde de máscara.
+    Isso blinda a logo contra conflitos de tema do celular/navegador.
+    """
+    if not os.path.exists(caminho_imagem):
+        return ""
+    
+    # Abre a imagem e varre os pixels para remover o fundo branco
+    img = Image.open(caminho_imagem).convert("RGBA")
+    datas = img.getdata()
+    novo_dado = []
+    
+    for item in datas:
+        # Calcula a luminosidade do pixel (Branco = 255, Preto = 0)
+        lum = 0.299 * item[0] + 0.587 * item[1] + 0.114 * item[2]
+        # Inverte: O que for branco fica transparente, o que for preto fica opaco
+        alpha = int(255 - lum)
+        novo_dado.append((0, 0, 0, alpha))
+        
+    img.putdata(novo_dado)
+    buffered = io.BytesIO()
+    img.save(buffered, format="PNG")
+    b64 = base64.b64encode(buffered.getvalue()).decode()
+    
+    # Cria uma div preenchida com a cor do texto do site e recorta no formato da logo
+    html_mask = f"""
+    <div style="
+        background-color: var(--text-color);
+        -webkit-mask-image: url('data:image/png;base64,{b64}');
+        -webkit-mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-image: url('data:image/png;base64,{b64}');
+        mask-size: contain;
+        mask-repeat: no-repeat;
+        mask-position: center;
+        width: 100%;
+        max-width: 280px;
+        height: 110px;
+        margin: 0 auto 20px auto;
+    "></div>
+    """
+    return html_mask
 
-# Estilos CSS Definitivos para blindar o tema
+# Estilos CSS Limpos
 st.markdown(
     """
     <style>
-    .logo-container {
-        text-align: center;
-        margin-bottom: 20px;
-    }
-    
-    .logo-cat {
-        max-width: 280px;
-        width: 100%;
-    }
-
-    /* Estilos fixos de tratamento de cor da imagem */
-    .logo-light {
-        filter: none !important;
-        mix-blend-mode: multiply !important;
-    }
-    
-    .logo-dark {
-        filter: invert(1) !important;
-        mix-blend-mode: screen !important;
-    }
-
-    /* 1. COMPORTAMENTO PADRÃO DO SISTEMA OPERACIONAL */
-    .logo-dark { display: none; }
-    .logo-light { display: inline-block; }
-    
-    @media (prefers-color-scheme: dark) {
-        .logo-light { display: none; }
-        .logo-dark { display: inline-block; }
-    }
-
-    /* 2. OVERRIDE ABSOLUTO QUANDO O BOTÃO DO SITE FOR USADO */
-    
-    /* Se o usuário forçar o Tema Claro no site */
-    [data-theme="light"] .logo-dark,
-    .stApp[data-theme="light"] .logo-dark {
-        display: none !important;
-    }
-    [data-theme="light"] .logo-light,
-    .stApp[data-theme="light"] .logo-light {
-        display: inline-block !important;
-    }
-
-    /* Se o usuário forçar o Tema Escuro no site */
-    [data-theme="dark"] .logo-light,
-    .stApp[data-theme="dark"] .logo-light {
-        display: none !important;
-    }
-    [data-theme="dark"] .logo-dark,
-    .stApp[data-theme="dark"] .logo-dark {
-        display: inline-block !important;
-    }
-
     .info-box { 
         padding: 15px; 
         border-radius: 8px; 
@@ -102,8 +80,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Renderiza a logo blindada
-renderizar_logo("logo.png")
+# Renderiza a logo processada matematicamente
+st.markdown(processar_logo_molde("logo.png"), unsafe_allow_html=True)
 
 st.markdown(
     "<h3 style='text-align: center; margin-top: -10px;'>Simulador de Preço</h3>",
