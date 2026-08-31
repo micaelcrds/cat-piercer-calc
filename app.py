@@ -1,7 +1,6 @@
 import streamlit as st
 import math
-import glob
-import base64
+import os
 
 # Configuração da página
 st.set_page_config(
@@ -15,57 +14,49 @@ def truncar_dez_centavos(valor):
     """Arredonda o valor para baixo cortando os centavos finais (ex: 87.29 vira 87.20)"""
     return math.floor(valor * 10) / 10.0
 
-def renderizar_logo():
-    """Busca automaticamente qualquer imagem PNG no repositório e aplica mesclagem CSS"""
-    # Procura qualquer arquivo .png na pasta
-    png_files = glob.glob("*.png")
-    
-    if not png_files:
-        st.warning("⚠️ Nenhuma imagem PNG foi encontrada. Faça o upload da logo para o GitHub.")
-        return
-        
-    caminho_imagem = png_files[0] # Pega a primeira imagem que encontrar
-    
-    with open(caminho_imagem, "rb") as f:
-        data = f.read()
-    b64 = base64.b64encode(data).decode()
-    
-    st.markdown(
-        f"""
-        <style>
-        .logo-cat {{
-            display: block;
-            margin: 0 auto 20px auto;
-            max-width: 280px;
-            width: 100%;
-        }}
-        
-        /* Tema Claro: Remove fundo branco, mantém linhas pretas */
-        @media (prefers-color-scheme: light) {{
-            .logo-cat {{
-                filter: none;
-                mix-blend-mode: multiply;
-            }}
-        }}
-        
-        /* Tema Escuro: Inverte linhas para branco, remove fundo preto */
-        @media (prefers-color-scheme: dark) {{
-            .logo-cat {{
-                filter: invert(1);
-                mix-blend-mode: screen;
-            }}
-        }}
-        </style>
-        
-        <img class="logo-cat" src="data:image/png;base64,{b64}" alt="Logo Cat Piercing">
-        """,
-        unsafe_allow_html=True
-    )
-
-# Estilos da caixa de resultados
+# Estilos CSS Nativos
 st.markdown(
     """
     <style>
+    /* Centraliza e padroniza a logo nativa do Streamlit */
+    [data-testid="stImage"] {
+        margin: 0 auto 20px auto;
+        display: flex;
+        justify-content: center;
+    }
+    
+    [data-testid="stImage"] img {
+        max-width: 280px !important;
+        transition: filter 0.3s ease;
+    }
+
+    /* Tema Claro (Padrão do Sistema) */
+    @media (prefers-color-scheme: light) {
+        [data-testid="stImage"] img {
+            filter: none;
+            mix-blend-mode: multiply;
+        }
+    }
+
+    /* Tema Escuro (Padrão do Sistema) */
+    @media (prefers-color-scheme: dark) {
+        [data-testid="stImage"] img {
+            filter: invert(1);
+            mix-blend-mode: screen;
+        }
+    }
+
+    /* Regras Forçadas caso o usuário mude no menu Settings do Streamlit */
+    [data-theme="light"] [data-testid="stImage"] img {
+        filter: none !important;
+        mix-blend-mode: multiply !important;
+    }
+    
+    [data-theme="dark"] [data-testid="stImage"] img {
+        filter: invert(1) !important;
+        mix-blend-mode: screen !important;
+    }
+
     .info-box { 
         padding: 15px; 
         border-radius: 8px; 
@@ -79,8 +70,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Chama a função que detecta e renderiza a logo automaticamente
-renderizar_logo()
+# Renderiza a logo usando a função nativa e segura do Streamlit
+if os.path.exists("logo.png"):
+    st.image("logo.png")
 
 st.markdown(
     "<h3 style='text-align: center; margin-top: -10px;'>Simulador de Preço</h3>",
