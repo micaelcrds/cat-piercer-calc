@@ -67,17 +67,13 @@ st.markdown(
     "<h3 style='text-align: center; margin-top: 10px;'>Simulador de Preço</h3>",
     unsafe_allow_html=True,
 )
-st.markdown(
-    "<p style='text-align: center; color: gray; font-size: 14px;'>Cálculo cravado em 1h de atendimento com arredondamento inteligente.</p>",
-    unsafe_allow_html=True,
-)
 
 with st.expander("⚙️ Parâmetros Fixos do Estúdio"):
-    salario = st.number_input("Pró-labore", value=2500.0)
-    aluguel = st.number_input("Custos Fixos", value=650.0)
-    transporte = st.number_input("Transporte", value=288.0)
-    dias = st.number_input("Dias no Mês", value=12)
-    horas_dia = st.number_input("Horas/Dia", value=6)
+    salario = st.number_input("Pró-labore (Salário mensal livre desejado)", value=2500.0)
+    aluguel = st.number_input("Custos Fixos (Aluguel, Água, Luz, Internet, etc.)", value=650.0)
+    transporte = st.number_input("Transporte (Gasto mensal com locomoção)", value=288.0)
+    dias = st.number_input("Dias no Mês (Quantos dias o estúdio abre no mês)", value=12)
+    horas_dia = st.number_input("Horas/Dia (Carga horária diária de trabalho)", value=6)
 
 custo_hora = (salario + aluguel + transporte) / (dias * horas_dia)
 custo_operacional_base = 15.76 + custo_hora
@@ -86,11 +82,19 @@ st.subheader("📝 Dados do Atendimento")
 procedimento = st.text_input(
     "Nome do Procedimento", placeholder="Ex: Conch, Helix, Nostril..."
 )
+
+col1, col2 = st.columns(2)
+with col1:
+    nome_joia = st.text_input("Nome da Joia", placeholder="Ex: Argola Titânio...")
+with col2:
+    qtd_joias = st.number_input("Quantidade de Joias", min_value=1, value=1, step=1)
+
 valor_joia = st.number_input(
-    "Custo da Joia (R$)", min_value=0.0, value=0.0, step=5.0
+    "Custo Unitário da Joia (R$)", min_value=0.0, value=0.0, step=5.0
 )
 
-custo_total = custo_operacional_base + valor_joia
+# O custo da joia agora é multiplicado pela quantidade
+custo_total = custo_operacional_base + (valor_joia * qtd_joias)
 
 # Taxas
 margem = 0.20
@@ -111,6 +115,13 @@ preco_teste_truncado = truncar_dez_centavos(preco_teste)
 st.divider()
 st.subheader("💡 Resultado da Precificação")
 
+# Informações da joia para a mensagem do WhatsApp
+info_joia = ""
+if nome_joia:
+    info_joia = f"\nJoia: {qtd_joias}x {nome_joia}"
+elif qtd_joias > 1:
+    info_joia = f"\nJoias: {qtd_joias} unidades"
+
 if preco_teste_truncado >= 100.0:
     preco_base = preco_teste_truncado
     
@@ -122,7 +133,7 @@ if preco_teste_truncado >= 100.0:
     </div>
     """, unsafe_allow_html=True)
     
-    msg = f"*Orçamento - Cat Piercer* 💎\nProcedimento: {procedimento if procedimento else 'Personalizado'}\n\n"
+    msg = f"*Orçamento - Cat Piercer* 💎\nProcedimento: {procedimento if procedimento else 'Personalizado'}{info_joia}\n\n"
     msg += f"✨ *Valor: R$ {preco_base:.2f}*\n"
     msg += f"(Aceitamos Pix ou Cartão em até 3x sem juros!)\n"
     msg += f"• 2x sem juros de R$ {preco_base/2:.2f}\n"
@@ -144,7 +155,7 @@ else:
     </div>
     """, unsafe_allow_html=True)
     
-    msg = f"*Orçamento - Cat Piercer* 💎\nProcedimento: {procedimento if procedimento else 'Personalizado'}\n\n"
+    msg = f"*Orçamento - Cat Piercer* 💎\nProcedimento: {procedimento if procedimento else 'Personalizado'}{info_joia}\n\n"
     msg += f"✨ *Pix: R$ {preco_pix:.2f}*\n"
     msg += f"💳 *Cartão (1x): R$ {preco_1x:.2f}*\n\n"
     msg += "Opções de parcelamento no Cartão:\n"
