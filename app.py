@@ -5,94 +5,107 @@ st.set_page_config(
     page_title="Cat Piercer - Precificação",
     page_icon="💎",
     layout="centered",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="collapsed",
 )
 
-# Estilo visual moderno e escuro
-st.markdown("""
+# Estilo visual escuro moderno
+st.markdown(
+    """
     <style>
     .main {
         background-color: #0e1117;
         color: #ffffff;
     }
-    .stButton>button {
-        width: 100%;
-        background-color: #ff4b4b;
-        color: white;
-        font-weight: bold;
-        border-radius: 8px;
-        padding: 10px;
+    .info-box { 
+        background-color: #1f2937; 
+        padding: 15px; 
+        border-radius: 8px; 
+        border-left: 5px solid #ff4b4b; 
+        margin-top: 10px; 
+        margin-bottom: 20px;
     }
     </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 st.title("💎 Cat Piercer - Simulador de Preço")
-st.markdown("Calculadora automática e precisa de custos e margem de lucro por procedimento.")
+st.markdown("Cálculo dinâmico com regras de repasse e parcelamento.")
 
-with st.expander("⚙️ Parâmetros Fixos do Estúdio (Setembro)"):
-    salario = st.number_input("Salário Desejado (Pró-labore)", value=2500.0)
-    aluguel = st.number_input("Aluguel + Energia + Água", value=650.0)
-    transporte = st.number_input("Transporte Mensal", value=288.0)
-    dias = st.number_input("Dias Trabalhados no Mês", value=12)
-    horas_dia = st.number_input("Horas de Trabalho por Dia", value=6)
+with st.expander("⚙️ Parâmetros Fixos do Estúdio"):
+  salario = st.number_input("Pró-labore", value=2500.0)
+  aluguel = st.number_input("Custos Fixos", value=650.0)
+  transporte = st.number_input("Transporte", value=288.0)
+  dias = st.number_input("Dias no Mês", value=12)
+  horas_dia = st.number_input("Horas/Dia", value=6)
 
-# Cálculos de custos fixos e hora
-total_fixo = salario + aluguel + transporte
-total_horas = dias * horas_dia
-custo_hora = total_fixo / total_horas if total_horas > 0 else 0
-custo_materiais = 15.76  # Insumos fixos padrão
-
-st.divider()
+# Custos Base (Tempo fixado em 1h exata)
+custo_hora = (salario + aluguel + transporte) / (dias * horas_dia)
+custo_operacional_base = 15.76 + custo_hora
 
 st.subheader("📝 Dados do Atendimento")
-procedimento = st.text_input("Nome do Procedimento / Região", placeholder="Ex: Conch, Helix, Nostril...")
-tempo_horas = st.slider("Tempo estimado de atendimento (Horas)", min_value=0.5, max_value=3.0, value=1.0, step=0.5)
-valor_joia = st.number_input("Custo da Joia (R$)", min_value=0.0, value=0.0, step=5.0)
+procedimento = st.text_input(
+    "Nome do Procedimento / Região", placeholder="Ex: Conch, Helix, Nostril..."
+)
+valor_joia = st.number_input(
+    "Custo da Joia (R$)", min_value=0.0, value=0.0, step=5.0
+)
 
-# Cálculo do Custo Operacional
-custo_tempo = tempo_horas * custo_hora
-custo_perfuracao = custo_materiais + custo_tempo + valor_joia
+# Taxas extraídas da máquina
+tx_1x_total = 0.0419
+tx_repasse = {
+    2: 0.0248,
+    3: 0.0339,
+    4: 0.1136,
+    5: 0.1431,
+    6: 0.1432
+}
 
-# Lógica Exata da Planilha Excel:
-# Se o custo for >= R$ 80, o preço final passa de R$ 100 e aplica 6.99% do cartão (3x sem juros) + 20% lucro.
-# Se o custo for < R$ 80, aplica apenas os 20% de margem de lucro líquido real.
-taxa_cartao = 0.0699
-margem_lucro = 0.20
+custo_total = custo_operacional_base + valor_joia
 
-if custo_perfuracao >= 80.0:
-    retencao = taxa_cartao + margem_lucro  # 26.99%
-    tipo_calculo = "Com taxa de cartão (3x sem juros) + 20% de lucro líquido."
-else:
-    retencao = margem_lucro  # 20.00%
-    tipo_calculo = "Cobrança padrão à vista/Pix (20% de lucro líquido)."
-
-preco_ideal = custo_perfuracao / (1 - retencao)
-lucro_estimado = preco_ideal * margem_lucro
+# Verifica se o preço final absorvendo a taxa de 3x chega a R$ 100
+preco_teste_3x = custo_total / (1 - 0.20 - 0.0699)
 
 st.divider()
-
-# Exibição dos Resultados em destaque
 st.subheader("💡 Resultado da Precificação")
 
-col1, col2 = st.columns(2)
-with col1:
-    st.metric(label="Custo Operacional Total", value=f"R$ {custo_perfuracao:.2f}")
-with col2:
-    st.metric(label="Lucro Líquido Estúdio (20%)", value=f"R$ {lucro_estimado:.2f}")
+if preco_teste_3x >= 100.0:
+    preco_base = preco_teste_3x
+    
+    st.markdown(f"""
+    <div class="info-box" style="border-left-color: #10b981;">
+        <h4 style="margin:0; color:#10b981;">💰 COMPRA DE R$ 100 OU MAIS</h4>
+        <p style="margin:5px 0 0 0; font-size:14px; color:#d1d5db;">O valor absorve a taxa de 3x sem juros (6,99%).<br>
+        Na máquina, digite <b>R$ {preco_base:.2f}</b>. Para 4x, 5x ou 6x, <b>ative a chave de repasse</b>.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    msg = f"*Orçamento - Cat Piercer* 💎\nProcedimento: {procedimento if procedimento else 'Personalizado'}\n\n"
+    msg += f"✨ *Valor: R$ {preco_base:.2f}*\n"
+    msg += f"(Aceitamos Pix ou Cartão de Crédito em até 3x sem juros de R$ {preco_base/3:.2f})\n\n"
+    msg += "Opções para parcelamento estendido:\n"
+    for i in range(4, 7):
+        total_cliente = preco_base * (1 + tx_repasse[i])
+        msg += f"• {i}x de R$ {total_cliente/i:.2f} (Total: R$ {total_cliente:.2f})\n"
+        
+else:
+    preco_pix = custo_total / (1 - 0.20)
+    preco_1x = custo_total / (1 - 0.20 - tx_1x_total)
+    
+    st.markdown(f"""
+    <div class="info-box">
+        <h4 style="margin:0; color:#ff4b4b;">📉 COMPRA ABAIXO DE R$ 100</h4>
+        <p style="margin:5px 0 0 0; font-size:14px; color:#d1d5db;">Sem parcelamento sem juros. Há variação entre Pix e Cartão.<br>
+        Na máquina, digite <b>R$ {preco_1x:.2f}</b>. Se a cliente parcelar (2x a 6x), <b>ative a chave de repasse</b>.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    msg = f"*Orçamento - Cat Piercer* 💎\nProcedimento: {procedimento if procedimento else 'Personalizado'}\n\n"
+    msg += f"✨ *Pix: R$ {preco_pix:.2f}*\n"
+    msg += f"💳 *Cartão (1x): R$ {preco_1x:.2f}*\n\n"
+    msg += "Opções de parcelamento no Cartão:\n"
+    for i in range(2, 7):
+        total_cliente = preco_1x * (1 + tx_repasse[i])
+        msg += f"• {i}x de R$ {total_cliente/i:.2f} (Total: R$ {total_cliente:.2f})\n"
 
-st.markdown(f"""
-<div style="background-color: #1f2937; padding: 20px; border-radius: 10px; border-left: 5px solid #10b981; text-align: center; margin-top: 15px;">
-    <h3 style="color: #9ca3af; margin:0;">VALOR IDEAL A COBRAR DA CLIENTE</h3>
-    <h1 style="color: #10b981; font-size: 40px; margin: 5px 0;">R$ {preco_ideal:.2f}</h1>
-    <p style="color: #d1d5db; font-size: 14px; margin:0;">{tipo_calculo}</p>
-</div>
-""", unsafe_allow_html=True)
-
-# Mensagem pronta para o WhatsApp
-mensagem_whatsapp = f"""*Orçamento - Cat Piercer* 💎
-Procedimento: {procedimento if procedimento else 'Personalizado'}
-Valor do Investimento: *R$ {preco_ideal:.2f}*
-Forma de pagamento: À vista no Pix ou parcelado no cartão! ✨"""
-
-st.markdown("---")
-st.text_area("Copiar mensagem para enviar à cliente:", value=mensagem_whatsapp)
+st.text_area("Copiar mensagem para o WhatsApp:", value=msg, height=300)
