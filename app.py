@@ -16,7 +16,7 @@ def truncar_dez_centavos(valor):
     return math.floor(valor * 10) / 10.0
 
 def renderizar_logo(caminho_imagem="logo.png"):
-    """Renderiza a logo com tratamento avançado de mesclagem para fundos brancos/transparentes"""
+    """Renderiza duas versões da logo e usa CSS para alternar entre elas sem conflito com o OS"""
     if os.path.exists(caminho_imagem):
         with open(caminho_imagem, "rb") as f:
             data = f.read()
@@ -24,13 +24,16 @@ def renderizar_logo(caminho_imagem="logo.png"):
         st.markdown(
             f"""
             <div class="logo-container">
-                <img class="logo-cat" src="data:image/png;base64,{b64}" alt="Cat Piercing Logo">
+                <!-- Versão Modo Claro -->
+                <img class="logo-cat logo-light" src="data:image/png;base64,{b64}" alt="Cat Piercing Logo">
+                <!-- Versão Modo Escuro -->
+                <img class="logo-cat logo-dark" src="data:image/png;base64,{b64}" alt="Cat Piercing Logo">
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-# Estilos CSS com suporte infalível a troca de tema
+# Estilos CSS Definitivos para blindar o tema
 st.markdown(
     """
     <style>
@@ -42,35 +45,48 @@ st.markdown(
     .logo-cat {
         max-width: 280px;
         width: 100%;
-        transition: filter 0.3s ease;
     }
 
-    /* 1. MODO CLARO PADRÃO: Remove fundo branco, mantém linhas pretas */
-    .logo-cat {
-        filter: none;
-        mix-blend-mode: multiply;
+    /* Estilos fixos de tratamento de cor da imagem */
+    .logo-light {
+        filter: none !important;
+        mix-blend-mode: multiply !important;
     }
-
-    /* 2. MODO ESCURO (Pelo Sistema OS): Inverte linhas para branco, remove fundo preto */
-    @media (prefers-color-scheme: dark) {
-        .logo-cat {
-            filter: invert(1);
-            mix-blend-mode: screen;
-        }
-    }
-
-    /* 3. MODO ESCURO (Forçado no botão do Streamlit) */
-    [data-theme="dark"] .logo-cat,
-    .stApp[data-theme="dark"] .logo-cat {
+    
+    .logo-dark {
         filter: invert(1) !important;
         mix-blend-mode: screen !important;
     }
 
-    /* 4. MODO CLARO (Forçado no botão do Streamlit) */
-    [data-theme="light"] .logo-cat,
-    .stApp[data-theme="light"] .logo-cat {
-        filter: none !important;
-        mix-blend-mode: multiply !important;
+    /* 1. COMPORTAMENTO PADRÃO DO SISTEMA OPERACIONAL */
+    .logo-dark { display: none; }
+    .logo-light { display: inline-block; }
+    
+    @media (prefers-color-scheme: dark) {
+        .logo-light { display: none; }
+        .logo-dark { display: inline-block; }
+    }
+
+    /* 2. OVERRIDE ABSOLUTO QUANDO O BOTÃO DO SITE FOR USADO */
+    
+    /* Se o usuário forçar o Tema Claro no site */
+    [data-theme="light"] .logo-dark,
+    .stApp[data-theme="light"] .logo-dark {
+        display: none !important;
+    }
+    [data-theme="light"] .logo-light,
+    .stApp[data-theme="light"] .logo-light {
+        display: inline-block !important;
+    }
+
+    /* Se o usuário forçar o Tema Escuro no site */
+    [data-theme="dark"] .logo-light,
+    .stApp[data-theme="dark"] .logo-light {
+        display: none !important;
+    }
+    [data-theme="dark"] .logo-dark,
+    .stApp[data-theme="dark"] .logo-dark {
+        display: inline-block !important;
     }
 
     .info-box { 
@@ -86,7 +102,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Renderiza a logo no topo
+# Renderiza a logo blindada
 renderizar_logo("logo.png")
 
 st.markdown(
