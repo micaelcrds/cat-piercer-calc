@@ -8,7 +8,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Estilo visual moderno e escuro (combinando com o estúdio)
+# Estilo visual moderno e escuro
 st.markdown("""
     <style>
     .main {
@@ -22,13 +22,6 @@ st.markdown("""
         font-weight: bold;
         border-radius: 8px;
         padding: 10px;
-    }
-    .metric-card {
-        background-color: #1a1c23;
-        padding: 20px;
-        border-radius: 10px;
-        border: 1px solid #30323d;
-        text-align: center;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -56,14 +49,25 @@ procedimento = st.text_input("Nome do Procedimento / Região", placeholder="Ex: 
 tempo_horas = st.slider("Tempo estimado de atendimento (Horas)", min_value=0.5, max_value=3.0, value=1.0, step=0.5)
 valor_joia = st.number_input("Custo da Joia (R$)", min_value=0.0, value=0.0, step=5.0)
 
-# Taxas e Margem fixas validadas
-retencao_total = 0.2699  # 20% lucro + 6.99% taxa cartão 3x sem juros
-
-# Cálculo do Custo Operacional e Preço Final
+# Cálculo do Custo Operacional
 custo_tempo = tempo_horas * custo_hora
 custo_perfuracao = custo_materiais + custo_tempo + valor_joia
-preco_ideal = custo_perfuracao / (1 - retencao_total)
-lucro_estimado = preco_ideal * 0.20
+
+# Lógica Exata da Planilha Excel:
+# Se o custo for >= R$ 80, o preço final passa de R$ 100 e aplica 6.99% do cartão (3x sem juros) + 20% lucro.
+# Se o custo for < R$ 80, aplica apenas os 20% de margem de lucro líquido real.
+taxa_cartao = 0.0699
+margem_lucro = 0.20
+
+if custo_perfuracao >= 80.0:
+    retencao = taxa_cartao + margem_lucro  # 26.99%
+    tipo_calculo = "Com taxa de cartão (3x sem juros) + 20% de lucro líquido."
+else:
+    retencao = margem_lucro  # 20.00%
+    tipo_calculo = "Cobrança padrão à vista/Pix (20% de lucro líquido)."
+
+preco_ideal = custo_perfuracao / (1 - retencao)
+lucro_estimado = preco_ideal * margem_lucro
 
 st.divider()
 
@@ -80,7 +84,7 @@ st.markdown(f"""
 <div style="background-color: #1f2937; padding: 20px; border-radius: 10px; border-left: 5px solid #10b981; text-align: center; margin-top: 15px;">
     <h3 style="color: #9ca3af; margin:0;">VALOR IDEAL A COBRAR DA CLIENTE</h3>
     <h1 style="color: #10b981; font-size: 40px; margin: 5px 0;">R$ {preco_ideal:.2f}</h1>
-    <p style="color: #d1d5db; font-size: 14px; margin:0;">Inclui taxa de cartão (3x) e garante 20% de lucro líquido real.</p>
+    <p style="color: #d1d5db; font-size: 14px; margin:0;">{tipo_calculo}</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -88,7 +92,7 @@ st.markdown(f"""
 mensagem_whatsapp = f"""*Orçamento - Cat Piercer* 💎
 Procedimento: {procedimento if procedimento else 'Personalizado'}
 Valor do Investimento: *R$ {preco_ideal:.2f}*
-Forma de pagamento: À vista no Pix ou parcelado em até 3x sem juros no cartão! ✨"""
+Forma de pagamento: À vista no Pix ou parcelado no cartão! ✨"""
 
 st.markdown("---")
 st.text_area("Copiar mensagem para enviar à cliente:", value=mensagem_whatsapp)
