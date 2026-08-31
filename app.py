@@ -43,7 +43,7 @@ def renderizar_logo_cartao(caminho_imagem="logo.png"):
     else:
         st.warning("⚠️ Imagem não encontrada. Verifique se o arquivo se chama 'logo.png' no GitHub.")
 
-# Estilos da caixa de resultados
+# Estilos CSS
 st.markdown(
     """
     <style>
@@ -55,18 +55,20 @@ st.markdown(
         margin-bottom: 20px;
         background-color: rgba(128, 128, 128, 0.1);
     }
+    .stButton>button {
+        width: 100%;
+        border-radius: 8px;
+        font-weight: bold;
+    }
     </style>
 """,
     unsafe_allow_html=True,
 )
 
-# Renderiza o cartão da logo perfeitamente centralizado
+# Renderiza a logo
 renderizar_logo_cartao("logo.png")
 
-st.markdown(
-    "<h3 style='text-align: center; margin-top: 10px;'>Simulador de Preço</h3>",
-    unsafe_allow_html=True,
-)
+st.markdown("<h3 style='text-align: center; margin-top: 10px;'>Simulador de Preço</h3>", unsafe_allow_html=True)
 
 with st.expander("⚙️ Parâmetros Fixos do Estúdio"):
     salario = st.number_input("Pró-labore (Salário mensal livre desejado)", value=2500.0)
@@ -79,22 +81,52 @@ custo_hora = (salario + aluguel + transporte) / (dias * horas_dia)
 custo_operacional_base = 15.76 + custo_hora
 
 st.subheader("📝 Dados do Atendimento")
-procedimento = st.text_input(
-    "Nome do Procedimento", placeholder="Ex: Conch, Helix, Nostril..."
-)
+procedimento = st.text_input("Nome do Procedimento", placeholder="Ex: Conch, Helix, Nostril...")
 
-col1, col2 = st.columns(2)
-with col1:
-    nome_joia = st.text_input("Nome da Joia", placeholder="Ex: Argola Titânio...")
-with col2:
-    qtd_joias = st.number_input("Quantidade de Joias", min_value=1, value=1, step=1)
+# --- SISTEMA DINÂMICO DE JOIAS ---
+st.markdown("#### 💎 Joias Utilizadas")
 
-valor_joia = st.number_input(
-    "Custo Unitário da Joia (R$)", min_value=0.0, value=0.0, step=5.0
-)
+# Inicializa o contador de tipos de joias na memória da página
+if 'qtd_tipos_joias' not in st.session_state:
+    st.session_state.qtd_tipos_joias = 1
 
-# O custo da joia agora é multiplicado pela quantidade
-custo_total = custo_operacional_base + (valor_joia * qtd_joias)
+custo_total_joias = 0
+info_joias_list = []
+
+# Gera os campos para cada joia dinamicamente
+for i in range(st.session_state.qtd_tipos_joias):
+    with st.container():
+        st.markdown(f"**Item {i+1}**")
+        col1, col2 = st.columns([2, 1])
+        with col1:
+            nome = st.text_input(f"Nome da Joia", placeholder="Ex: Argola Titânio...", key=f"nome_{i}")
+        with col2:
+            qtd = st.number_input(f"Quantidade", min_value=1, value=1, step=1, key=f"qtd_{i}")
+        
+        valor = st.number_input(f"Custo Unitário da Joia (R$)", min_value=0.0, value=0.0, step=5.0, key=f"valor_{i}")
+        st.markdown("---")
+        
+        custo_total_joias += (valor * qtd)
+        
+        if nome:
+            info_joias_list.append(f"{qtd}x {nome}")
+        elif valor > 0:
+            info_joias_list.append(f"{qtd}x Joia Padrão")
+
+# Botões para adicionar ou remover itens
+colA, colB = st.columns(2)
+with colA:
+    if st.button("➕ Adicionar outra joia"):
+        st.session_state.qtd_tipos_joias += 1
+        st.rerun()
+with colB:
+    if st.session_state.qtd_tipos_joias > 1:
+        if st.button("❌ Remover última"):
+            st.session_state.qtd_tipos_joias -= 1
+            st.rerun()
+# ---------------------------------
+
+custo_total = custo_operacional_base + custo_total_joias
 
 # Taxas
 margem = 0.20
@@ -115,12 +147,9 @@ preco_teste_truncado = truncar_dez_centavos(preco_teste)
 st.divider()
 st.subheader("💡 Resultado da Precificação")
 
-# Informações da joia para a mensagem do WhatsApp
-info_joia = ""
-if nome_joia:
-    info_joia = f"\nJoia: {qtd_joias}x {nome_joia}"
-elif qtd_joias > 1:
-    info_joia = f"\nJoias: {qtd_joias} unidades"
+info_joia_str = ""
+if info_joias_list:
+    info_joia_str = f"\nJoias: " + ", ".join(info_joias_list)
 
 if preco_teste_truncado >= 100.0:
     preco_base = preco_teste_truncado
@@ -133,7 +162,7 @@ if preco_teste_truncado >= 100.0:
     </div>
     """, unsafe_allow_html=True)
     
-    msg = f"*Orçamento - Cat Piercer* 💎\nProcedimento: {procedimento if procedimento else 'Personalizado'}{info_joia}\n\n"
+    msg = f"*Orçamento - Cat Piercer* 💎\nProcedimento: {procedimento if procedimento else 'Personalizado'}{info_joia_str}\n\n"
     msg += f"✨ *Valor: R$ {preco_base:.2f}*\n"
     msg += f"(Aceitamos Pix ou Cartão em até 3x sem juros!)\n"
     msg += f"• 2x sem juros de R$ {preco_base/2:.2f}\n"
@@ -155,7 +184,7 @@ else:
     </div>
     """, unsafe_allow_html=True)
     
-    msg = f"*Orçamento - Cat Piercer* 💎\nProcedimento: {procedimento if procedimento else 'Personalizado'}{info_joia}\n\n"
+    msg = f"*Orçamento - Cat Piercer* 💎\nProcedimento: {procedimento if procedimento else 'Personalizado'}{info_joia_str}\n\n"
     msg += f"✨ *Pix: R$ {preco_pix:.2f}*\n"
     msg += f"💳 *Cartão (1x): R$ {preco_1x:.2f}*\n\n"
     msg += "Opções de parcelamento no Cartão:\n"
