@@ -1,6 +1,7 @@
 import streamlit as st
 import math
 import os
+import base64
 
 # Configuração da página
 st.set_page_config(
@@ -14,30 +15,38 @@ def truncar_dez_centavos(valor):
     """Arredonda o valor para baixo cortando os centavos finais (ex: 87.29 vira 87.20)"""
     return math.floor(valor * 10) / 10.0
 
-# Estilos CSS Blindados
+def renderizar_logo_cartao(caminho_imagem="logo.png"):
+    """Força o alinhamento central absoluto usando Flexbox HTML/CSS"""
+    if os.path.exists(caminho_imagem):
+        with open(caminho_imagem, "rb") as f:
+            data = f.read()
+        b64 = base64.b64encode(data).decode()
+        
+        st.markdown(
+            f"""
+            <div style="display: flex; justify-content: center; width: 100%; margin-bottom: 10px;">
+                <div style="
+                    background-color: #ffffff;
+                    padding: 15px 25px;
+                    border-radius: 16px;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                ">
+                    <img src="data:image/png;base64,{b64}" alt="Cat Piercer Logo" style="max-height: 120px; width: auto; mix-blend-mode: multiply; filter: none;">
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    else:
+        st.warning("⚠️ Imagem não encontrada. Verifique se o arquivo se chama 'logo.png' no GitHub.")
+
+# Estilos da caixa de resultados
 st.markdown(
     """
     <style>
-    /* Ajusta o cartão da logo para ficar compacto e centralizado */
-    [data-testid="stImage"] {
-        background-color: #ffffff !important;
-        padding: 15px !important;
-        border-radius: 16px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        margin: 0 auto !important;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: fit-content !important;
-    }
-    
-    [data-testid="stImage"] img {
-        max-height: 130px !important; /* Trava a altura para impedir que a logo vertical fique gigante */
-        width: auto !important;
-        mix-blend-mode: multiply !important; 
-        filter: none !important;
-    }
-
     .info-box { 
         padding: 15px; 
         border-radius: 8px; 
@@ -51,13 +60,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Renderiza a logo usando colunas para garantir a centralização no meio da página
-if os.path.exists("logo.png"):
-    col1, col2, col3 = st.columns([1, 1, 1])
-    with col2:
-        st.image("logo.png")
-else:
-    st.warning("⚠️ Imagem não encontrada. Verifique se o arquivo se chama exatamente 'logo.png' no GitHub.")
+# Renderiza o cartão da logo perfeitamente centralizado
+renderizar_logo_cartao("logo.png")
 
 st.markdown(
     "<h3 style='text-align: center; margin-top: 10px;'>Simulador de Preço</h3>",
