@@ -14,47 +14,27 @@ def truncar_dez_centavos(valor):
     """Arredonda o valor para baixo cortando os centavos finais (ex: 87.29 vira 87.20)"""
     return math.floor(valor * 10) / 10.0
 
-# Estilos CSS Nativos
+# Estilos CSS Blindados
 st.markdown(
     """
     <style>
-    /* Centraliza e padroniza a logo nativa do Streamlit */
+    /* Cartão de Destaque da Logo: Imune a bugs de Modo Escuro/Claro */
     [data-testid="stImage"] {
-        margin: 0 auto 20px auto;
+        background-color: #ffffff !important;
+        padding: 20px;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        margin: 0 auto 30px auto;
         display: flex;
         justify-content: center;
+        max-width: 320px;
     }
     
     [data-testid="stImage"] img {
-        max-width: 280px !important;
-        transition: filter 0.3s ease;
-    }
-
-    /* Tema Claro (Padrão do Sistema) */
-    @media (prefers-color-scheme: light) {
-        [data-testid="stImage"] img {
-            filter: none;
-            mix-blend-mode: multiply;
-        }
-    }
-
-    /* Tema Escuro (Padrão do Sistema) */
-    @media (prefers-color-scheme: dark) {
-        [data-testid="stImage"] img {
-            filter: invert(1);
-            mix-blend-mode: screen;
-        }
-    }
-
-    /* Regras Forçadas caso o usuário mude no menu Settings do Streamlit */
-    [data-theme="light"] [data-testid="stImage"] img {
+        max-width: 250px !important;
+        /* O multiply garante que o fundo da sua imagem se funda perfeitamente com o cartão branco */
+        mix-blend-mode: multiply !important; 
         filter: none !important;
-        mix-blend-mode: multiply !important;
-    }
-    
-    [data-theme="dark"] [data-testid="stImage"] img {
-        filter: invert(1) !important;
-        mix-blend-mode: screen !important;
     }
 
     .info-box { 
@@ -70,9 +50,11 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Renderiza a logo usando a função nativa e segura do Streamlit
+# Renderiza a logo usando a função nativa do Streamlit
 if os.path.exists("logo.png"):
     st.image("logo.png")
+else:
+    st.warning("⚠️ Imagem não encontrada. Verifique se o arquivo se chama exatamente 'logo.png' no GitHub.")
 
 st.markdown(
     "<h3 style='text-align: center; margin-top: -10px;'>Simulador de Preço</h3>",
