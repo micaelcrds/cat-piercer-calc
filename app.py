@@ -57,6 +57,13 @@ st.markdown(
         border-radius: 8px;
         font-weight: bold;
     }
+    .item-container {
+        background-color: rgba(255, 255, 255, 0.05);
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
     </style>
 """,
     unsafe_allow_html=True,
@@ -66,47 +73,56 @@ renderizar_logo_cartao("logo.png")
 
 st.markdown("<h3 style='text-align: center; margin-top: 10px;'>Simulador de Preço</h3>", unsafe_allow_html=True)
 
-with st.expander("⚙️ Parâmetros Fixos do Estúdio"):
-    salario = st.number_input("Pró-labore (Salário mensal livre desejado)", value=2500.0)
-    aluguel = st.number_input("Custos Fixos (Aluguel, Água, Luz, Internet, etc.)", value=650.0)
-    transporte = st.number_input("Transporte (Gasto mensal com locomoção)", value=288.0)
-    dias = st.number_input("Dias no Mês (Quantos dias o estúdio abre no mês)", value=12)
-    horas_dia = st.number_input("Horas/Dia (Carga horária diária de trabalho)", value=6)
-
-custo_hora = (salario + aluguel + transporte) / (dias * horas_dia)
-custo_operacional_base = 15.76 + custo_hora
-
 st.subheader("📝 Dados do Atendimento")
 procedimento = st.text_input("Nome do Procedimento", placeholder="Ex: Conch, Helix, Nostril...")
 
-st.markdown("#### 💎 Joias Utilizadas")
+st.markdown("#### 💎 Joias e Categorias")
 
 if 'qtd_tipos_joias' not in st.session_state:
     st.session_state.qtd_tipos_joias = 1
 
-custo_total_joias = 0
+preco_sugerido_total = 0
 total_joias_unidades = 0
 info_joias_list = []
 
 for i in range(st.session_state.qtd_tipos_joias):
-    with st.container():
-        st.markdown(f"**Item {i+1}**")
-        col1, col2 = st.columns([2, 1])
-        with col1:
-            nome = st.text_input(f"Nome da Joia", placeholder="Ex: Argola Titânio...", key=f"nome_{i}")
-        with col2:
-            qtd = st.number_input(f"Quantidade", min_value=1, value=1, step=1, key=f"qtd_{i}")
+    st.markdown(f"<div class='item-container'>", unsafe_allow_html=True)
+    st.markdown(f"**Item {i+1}**")
+    
+    nome = st.text_input(f"Nome da Joia", placeholder="Ex: Argola Titânio...", key=f"nome_{i}")
+    categoria = st.selectbox(
+        "Categoria do Procedimento", 
+        ["Básica (+ R$ 52)", "Ponto de Luz (+ R$ 60)", "Ornamentada (+ R$ 100)", "Apenas Venda da Joia (+ R$ 60)"],
+        key=f"cat_{i}"
+    )
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        # Se for ponto de luz, o placeholder sugere o 55 citado por ela
+        valor = st.number_input(f"Custo da Joia (R$)", min_value=0.0, value=0.0, step=5.0, key=f"valor_{i}")
+    with col2:
+        qtd = st.number_input(f"Quantidade", min_value=1, value=1, step=1, key=f"qtd_{i}")
+    
+    # Aplica a regra exata de precificação da Catarina
+    if "Básica" in categoria:
+        markup = 52.0
+    elif "Ponto de Luz" in categoria:
+        markup = 60.0
+    elif "Ornamentada" in categoria:
+        markup = 100.0  # 60 de lucro + 40 de material
+    else:
+        markup = 60.0   # Apenas venda, lucro na joia
         
-        valor = st.number_input(f"Custo Unitário da Joia (R$)", min_value=0.0, value=0.0, step=5.0, key=f"valor_{i}")
-        st.markdown("---")
+    preco_item = (valor + markup) * qtd
+    preco_sugerido_total += preco_item
+    total_joias_unidades += qtd
+    
+    if nome:
+        info_joias_list.append(f"{qtd}x {nome}")
+    elif valor > 0:
+        info_joias_list.append(f"{qtd}x Joia ({categoria.split(' ')[0]})")
         
-        custo_total_joias += (valor * qtd)
-        total_joias_unidades += qtd
-        
-        if nome:
-            info_joias_list.append(f"{qtd}x {nome}")
-        elif valor > 0:
-            info_joias_list.append(f"{qtd}x Joia Padrão")
+    st.markdown("</div>", unsafe_allow_html=True)
 
 colA, colB = st.columns(2)
 with colA:
@@ -118,14 +134,6 @@ with colB:
         if st.button("❌ Remover última"):
             st.session_state.qtd_tipos_joias -= 1
             st.rerun()
-
-custo_total = custo_operacional_base + custo_total_joias
-
-# Apenas a margem de 20% é aplicada no cálculo base. Nenhuma taxa de maquininha embutida.
-margem = 0.20
-tx_repasse = {2: 0.0964, 3: 0.1123, 4: 0.1136, 5: 0.1431, 6: 0.1432}
-
-preco_sugerido = truncar_dez_centavos(custo_total / (1 - margem))
 
 st.divider()
 st.subheader("💡 Resultado da Precificação")
@@ -139,14 +147,14 @@ elif total_joias_unidades >= 3:
 
 usar_desconto = False
 if desconto_percentual > 0:
-    st.info("O sistema detectou múltiplas joias. Lembre-se: o desconto reduz diretamente o lucro do estúdio.")
-    usar_desconto = st.checkbox(f"🎁 Aplicar Desconto Promocional ({int(desconto_percentual*100)}% para {int(total_joias_unidades)} joias)", value=True)
+    st.info("Múltiplas joias detectadas! O desconto será aplicado sobre o valor final de venda.")
+    usar_desconto = st.checkbox(f"🎁 Aplicar Desconto ({int(desconto_percentual*100)}% para {int(total_joias_unidades)} joias)", value=True)
 
 if usar_desconto:
-    preco_final = truncar_dez_centavos(preco_sugerido * (1 - desconto_percentual))
-    texto_investimento = f"De ~R$ {preco_sugerido:.2f}~ por *R$ {preco_final:.2f}*"
+    preco_final = truncar_dez_centavos(preco_sugerido_total * (1 - desconto_percentual))
+    texto_investimento = f"De ~R$ {preco_sugerido_total:.2f}~ por *R$ {preco_final:.2f}*"
 else:
-    preco_final = preco_sugerido
+    preco_final = truncar_dez_centavos(preco_sugerido_total)
     texto_investimento = f"*R$ {preco_final:.2f}*"
 
 info_joia_str = ""
@@ -167,11 +175,13 @@ texto_inclusoes = """
 
 Qual seria a melhor opção para você no momento? 🥰💜"""
 
+tx_repasse = {2: 0.0964, 3: 0.1123, 4: 0.1136, 5: 0.1431, 6: 0.1432}
+
 if preco_final >= 100.0:
     st.markdown(f"""
     <div class="info-box" style="border-left-color: #10b981;">
         <h4 style="margin:0; color:#10b981;">💰 COMPRA DE R$ 100 OU MAIS</h4>
-        <p style="margin:5px 0 0 0; font-size:14px;">Preço limpo calculado. Você absorve as taxas até 3x.<br>
+        <p style="margin:5px 0 0 0; font-size:14px;">Você absorve as taxas até 3x para facilitar a venda.<br>
         Na máquina, digite <b>R$ {preco_final:.2f}</b> (Sem repasse). Acima de 3x, use a chave de repasse.</p>
     </div>
     """, unsafe_allow_html=True)
@@ -195,8 +205,8 @@ else:
     st.markdown(f"""
     <div class="info-box">
         <h4 style="margin:0; color:#ff4b4b;">📉 COMPRA ABAIXO DE R$ 100</h4>
-        <p style="margin:5px 0 0 0; font-size:14px;">Preço limpo calculado.<br>
-        Na máquina, digite <b>R$ {preco_final:.2f}</b> (Sem repasse para Pix/1x). Para 2x ou 3x, ative a chave de repasse.</p>
+        <p style="margin:5px 0 0 0; font-size:14px;">Repasse obrigatório para compras parceladas.<br>
+        Na máquina, digite <b>R$ {preco_final:.2f}</b>. Para 2x ou 3x, ative a chave de repasse.</p>
     </div>
     """, unsafe_allow_html=True)
     
