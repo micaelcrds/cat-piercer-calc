@@ -121,16 +121,11 @@ with colB:
 
 custo_total = custo_operacional_base + custo_total_joias
 
+# Apenas a margem de 20% é aplicada no cálculo base. Nenhuma taxa de maquininha embutida.
 margem = 0.20
-tx_3x_absorvida = 0.0699
 tx_repasse = {2: 0.0964, 3: 0.1123, 4: 0.1136, 5: 0.1431, 6: 0.1432}
 
-# Lógica de determinação do preço sugerido (antes do desconto)
-preco_base_3x = custo_total / (1 - margem - tx_3x_absorvida)
-preco_base_1x = custo_total / (1 - margem)
-
-preco_sugerido = preco_base_3x if preco_base_3x >= 100.0 else preco_base_1x
-preco_sugerido = truncar_dez_centavos(preco_sugerido)
+preco_sugerido = truncar_dez_centavos(custo_total / (1 - margem))
 
 st.divider()
 st.subheader("💡 Resultado da Precificação")
@@ -144,7 +139,7 @@ elif total_joias_unidades >= 3:
 
 usar_desconto = False
 if desconto_percentual > 0:
-    st.info("O sistema detectou múltiplas joias.")
+    st.info("O sistema detectou múltiplas joias. Lembre-se: o desconto reduz diretamente o lucro do estúdio.")
     usar_desconto = st.checkbox(f"🎁 Aplicar Desconto Promocional ({int(desconto_percentual*100)}% para {int(total_joias_unidades)} joias)", value=True)
 
 if usar_desconto:
@@ -176,7 +171,7 @@ if preco_final >= 100.0:
     st.markdown(f"""
     <div class="info-box" style="border-left-color: #10b981;">
         <h4 style="margin:0; color:#10b981;">💰 COMPRA DE R$ 100 OU MAIS</h4>
-        <p style="margin:5px 0 0 0; font-size:14px;">A taxa da máquina já está coberta para Pix ou parcelado até 3x.<br>
+        <p style="margin:5px 0 0 0; font-size:14px;">Preço limpo calculado. Você absorve as taxas até 3x.<br>
         Na máquina, digite <b>R$ {preco_final:.2f}</b> (Sem repasse). Acima de 3x, use a chave de repasse.</p>
     </div>
     """, unsafe_allow_html=True)
@@ -200,8 +195,8 @@ else:
     st.markdown(f"""
     <div class="info-box">
         <h4 style="margin:0; color:#ff4b4b;">📉 COMPRA ABAIXO DE R$ 100</h4>
-        <p style="margin:5px 0 0 0; font-size:14px;">A taxa de 1x (4,19%) não é repassada ao cliente.<br>
-        Na máquina, digite <b>R$ {preco_final:.2f}</b>. Para 2x ou 3x, ative a chave de repasse.</p>
+        <p style="margin:5px 0 0 0; font-size:14px;">Preço limpo calculado.<br>
+        Na máquina, digite <b>R$ {preco_final:.2f}</b> (Sem repasse para Pix/1x). Para 2x ou 3x, ative a chave de repasse.</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -211,7 +206,7 @@ else:
         msg += f"{info_joia_str}"
     msg += f"\n✨ *Investimento:* {texto_investimento}\n"
     msg += f"(Valor único para pagamento no Pix ou 1x no Cartão)\n\n"
-    msg += f"🔄 *Opções de parcelamento no Cartão:*\n"
+    msg += f"🔄 *Opções de parcelamento no Cartão (com acréscimo da maquininha):*\n"
     for i in range(2, 4):
         total_cliente = preco_final * (1 + tx_repasse[i])
         msg += f"• {i}x de R$ {total_cliente/i:.2f} (Total: R$ {total_cliente:.2f})\n\n"
