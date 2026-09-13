@@ -146,7 +146,8 @@ if desconto_percentual > 0:
 texto_aviso_desconto = ""
 if usar_desconto:
     preco_final = truncar_dez_centavos(preco_sugerido_total * (1 - desconto_percentual))
-    texto_aviso_desconto = f"🎁 *Você ganhou {int(desconto_percentual*100)}% de desconto!*\n"
+    # Adicionado um \n extra aqui para criar o espaçamento
+    texto_aviso_desconto = f"🎁 *Você ganhou {int(desconto_percentual*100)}% de desconto!*\n\n"
     texto_investimento = f"De ~R$ {preco_sugerido_total:.2f}~ por *R$ {preco_final:.2f}*"
 else:
     preco_final = truncar_dez_centavos(preco_sugerido_total)
