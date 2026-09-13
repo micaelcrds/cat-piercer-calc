@@ -14,6 +14,10 @@ def truncar_dez_centavos(valor):
     """Arredonda o valor para baixo cortando os centavos finais"""
     return math.floor(valor * 10) / 10.0
 
+def formatar_moeda(valor):
+    """Formata o valor para 2 casas decimais e troca o ponto por vírgula"""
+    return f"{valor:.2f}".replace('.', ',')
+
 def renderizar_logo_cartao(caminho_imagem="logo.png"):
     if os.path.exists(caminho_imagem):
         with open(caminho_imagem, "rb") as f:
@@ -88,7 +92,7 @@ for i in range(st.session_state.qtd_tipos_joias):
     
     col1, col2 = st.columns(2)
     with col1:
-        valor = st.number_input(f"Custo da Joia (R$)", min_value=0.0, value=None, placeholder="0.00", step=5.0, key=f"valor_{i}")
+        valor = st.number_input(f"Custo da Joia (R$)", min_value=0.0, value=None, placeholder="0,00", step=5.0, key=f"valor_{i}")
     with col2:
         qtd = st.number_input(f"Quantidade", min_value=1, value=1, step=1, key=f"qtd_{i}")
     
@@ -106,9 +110,9 @@ for i in range(st.session_state.qtd_tipos_joias):
     total_joias_unidades += qtd
     
     nome_exibicao = nome if nome else f"Joia ({categoria.split(' ')[0]})"
-    info_joias_list.append(f"{qtd}x {nome_exibicao} — R$ {preco_item:.2f}")
+    info_joias_list.append(f"{qtd}x {nome_exibicao} — R$ {formatar_moeda(preco_item)}")
     
-    st.markdown("---") # Adiciona uma linha divisória simples e nativa entre os itens
+    st.markdown("---") 
 
 colA, colB = st.columns(2)
 with colA:
@@ -139,10 +143,10 @@ texto_aviso_desconto = ""
 if usar_desconto:
     preco_final = truncar_dez_centavos(preco_sugerido_total * (1 - desconto_percentual))
     texto_aviso_desconto = f"🎁 *Você ganhou {int(desconto_percentual*100)}% de desconto!*\n\n"
-    texto_investimento = f"De ~R$ {preco_sugerido_total:.2f}~ por *R$ {preco_final:.2f}*"
+    texto_investimento = f"De ~R$ {formatar_moeda(preco_sugerido_total)}~ por *R$ {formatar_moeda(preco_final)}*"
 else:
     preco_final = truncar_dez_centavos(preco_sugerido_total)
-    texto_investimento = f"*R$ {preco_final:.2f}*"
+    texto_investimento = f"*R$ {formatar_moeda(preco_final)}*"
 
 preco_pix = truncar_dez_centavos(preco_final * 0.95)
 
@@ -173,7 +177,7 @@ if preco_final >= 100.0:
     <div class="info-box" style="border-left-color: #10b981;">
         <h4 style="margin:0; color:#10b981;">💰 COMPRA DE R$ 100 OU MAIS</h4>
         <p style="margin:5px 0 0 0; font-size:14px;">Você absorve as taxas até 3x para facilitar a venda.<br>
-        Na máquina, digite <b>R$ {preco_final:.2f}</b> (Sem repasse). Acima de 3x, use a chave de repasse.</p>
+        Na máquina, digite <b>R$ {formatar_moeda(preco_final)}</b> (Sem repasse). Acima de 3x, use a chave de repasse.</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -183,14 +187,14 @@ if preco_final >= 100.0:
         msg += f"{info_joia_str}"
     msg += f"\n{texto_aviso_desconto}✨ *Investimento Total:* {texto_investimento}\n\n"
     msg += f"💳 *Formas de Pagamento:*\n"
-    msg += f"• Pix *(5% OFF)*: R$ {preco_pix:.2f}\n\n"
-    msg += f"• 1x no Cartão: R$ {preco_final:.2f}\n"
-    msg += f"• 2x de R$ {preco_final/2:.2f} sem juros\n"
-    msg += f"• 3x de R$ {preco_final/3:.2f} sem juros\n\n"
+    msg += f"• Pix *(5% OFF)*: R$ {formatar_moeda(preco_pix)}\n\n"
+    msg += f"• 1x no Cartão: R$ {formatar_moeda(preco_final)}\n"
+    msg += f"• 2x de R$ {formatar_moeda(preco_final/2)} sem juros\n"
+    msg += f"• 3x de R$ {formatar_moeda(preco_final/3)} sem juros\n\n"
     msg += f"🔄 *Parcelamento estendido (com acréscimo da maquininha):*\n"
     for i in range(4, 7):
         total_cliente = preco_final * (1 + tx_repasse[i])
-        msg += f"• {i}x de R$ {total_cliente/i:.2f} (Total: R$ {total_cliente:.2f})\n\n"
+        msg += f"• {i}x de R$ {formatar_moeda(total_cliente/i)} (Total: R$ {formatar_moeda(total_cliente)})\n\n"
     msg += texto_inclusoes
         
 else:
@@ -198,7 +202,7 @@ else:
     <div class="info-box">
         <h4 style="margin:0; color:#ff4b4b;">📉 COMPRA ABAIXO DE R$ 100</h4>
         <p style="margin:5px 0 0 0; font-size:14px;">Repasse obrigatório para compras parceladas.<br>
-        Na máquina, digite <b>R$ {preco_final:.2f}</b>. Para 2x ou 3x, ative a chave de repasse.</p>
+        Na máquina, digite <b>R$ {formatar_moeda(preco_final)}</b>. Para 2x ou 3x, ative a chave de repasse.</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -208,12 +212,12 @@ else:
         msg += f"{info_joia_str}"
     msg += f"\n{texto_aviso_desconto}✨ *Investimento:* {texto_investimento}\n\n"
     msg += f"💳 *Formas de Pagamento:*\n"
-    msg += f"• Pix *(5% OFF)*: R$ {preco_pix:.2f}\n\n"
-    msg += f"• 1x no Cartão: R$ {preco_final:.2f}\n\n"
+    msg += f"• Pix *(5% OFF)*: R$ {formatar_moeda(preco_pix)}\n\n"
+    msg += f"• 1x no Cartão: R$ {formatar_moeda(preco_final)}\n\n"
     msg += f"🔄 *Opções de parcelamento no Cartão (com acréscimo da maquininha):*\n"
     for i in range(2, 4):
         total_cliente = preco_final * (1 + tx_repasse[i])
-        msg += f"• {i}x de R$ {total_cliente/i:.2f} (Total: R$ {total_cliente:.2f})\n\n"
+        msg += f"• {i}x de R$ {formatar_moeda(total_cliente/i)} (Total: R$ {formatar_moeda(total_cliente)})\n\n"
     msg += texto_inclusoes
 
 st.markdown("Copie a mensagem abaixo para enviar à cliente:")
