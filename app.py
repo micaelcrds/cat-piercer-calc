@@ -96,12 +96,12 @@ for i in range(st.session_state.qtd_tipos_joias):
     
     col1, col2 = st.columns(2)
     with col1:
-        # value=None inicia o campo vazio para facilitar a digitação
+        # value=None inicia o campo vazio para facilitar a digitação sem apagar zeros
         valor = st.number_input(f"Custo da Joia (R$)", min_value=0.0, value=None, placeholder="0.00", step=5.0, key=f"valor_{i}")
     with col2:
         qtd = st.number_input(f"Quantidade", min_value=1, value=1, step=1, key=f"qtd_{i}")
     
-    # Restaura as regras de marcação baseadas na categoria
+    # Aplica as regras de marcação baseadas na categoria
     if "Perfuração" in categoria:
         markup = 70.0
     elif "Atualização" in categoria:
