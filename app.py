@@ -92,7 +92,7 @@ for i in range(st.session_state.qtd_tipos_joias):
     nome = st.text_input(f"Nome da Joia", placeholder="Ex: Argola Titânio...", key=f"nome_{i}")
     categoria = st.selectbox(
         "Categoria do Procedimento", 
-        ["Básica (+ R$ 52)", "Ponto de Luz (+ R$ 60)", "Ornamentada (+ R$ 100)", "Apenas Venda da Joia (+ R$ 60)"],
+        ["Perfuração (+ R$ 70)", "Atualização (+ R$ 25)", "Venda de Joia (+ R$ 0)"],
         key=f"cat_{i}"
     )
     
@@ -102,14 +102,13 @@ for i in range(st.session_state.qtd_tipos_joias):
     with col2:
         qtd = st.number_input(f"Quantidade", min_value=1, value=1, step=1, key=f"qtd_{i}")
     
-    if "Básica" in categoria:
-        markup = 52.0
-    elif "Ponto de Luz" in categoria:
-        markup = 60.0
-    elif "Ornamentada" in categoria:
-        markup = 100.0  
+    # Aplica as novas regras de marcação
+    if "Perfuração" in categoria:
+        markup = 70.0
+    elif "Atualização" in categoria:
+        markup = 25.0
     else:
-        markup = 60.0   
+        markup = 0.0
         
     preco_item = (valor + markup) * qtd
     preco_sugerido_total += preco_item
