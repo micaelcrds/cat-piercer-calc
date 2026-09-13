@@ -102,7 +102,6 @@ for i in range(st.session_state.qtd_tipos_joias):
     with col2:
         qtd = st.number_input(f"Quantidade", min_value=1, value=1, step=1, key=f"qtd_{i}")
     
-    # Aplica as novas regras de marcação
     if "Perfuração" in categoria:
         markup = 70.0
     elif "Atualização" in categoria:
@@ -151,7 +150,6 @@ else:
     preco_final = truncar_dez_centavos(preco_sugerido_total)
     texto_investimento = f"*R$ {preco_final:.2f}*"
 
-# Calcula os 5% de desconto exclusivo para o Pix em cima do valor final estabelecido
 preco_pix = truncar_dez_centavos(preco_final * 0.95)
 
 info_joia_str = ""
@@ -162,13 +160,15 @@ if info_joias_list:
 
 texto_inclusoes = """
 *Inclui:*
-• Perfuração
-• Joia em Titânio
-• Material Estéril e Descartável
-• Anodização
-• Kit de Primeiros Cuidados
-• Cartão Fidelidade
-• Retornos online ilimitados e presenciais até 30 dias
+* Perfuração 
+* Joia em Titânio 
+* Material Estéril e Descartável 
+* Anodização (mudança de cor da joia)
+* Kit de Primeiros Cuidados
+* Cartão Fidelidade
+* Retornos online ilimitados e presenciais até 45 dias
+* *⁠_Novidade:_*
+    Downsize (redução de haste) cortesia, até 60 dias.
 
 Qual seria a melhor opção para você no momento? 🥰💜"""
 
