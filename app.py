@@ -98,29 +98,25 @@ for i in range(st.session_state.qtd_tipos_joias):
     
     col1, col2 = st.columns(2)
     with col1:
-        # Se for ponto de luz, o placeholder sugere o 55 citado por ela
         valor = st.number_input(f"Custo da Joia (R$)", min_value=0.0, value=0.0, step=5.0, key=f"valor_{i}")
     with col2:
         qtd = st.number_input(f"Quantidade", min_value=1, value=1, step=1, key=f"qtd_{i}")
     
-    # Aplica a regra exata de precificação da Catarina
     if "Básica" in categoria:
         markup = 52.0
     elif "Ponto de Luz" in categoria:
         markup = 60.0
     elif "Ornamentada" in categoria:
-        markup = 100.0  # 60 de lucro + 40 de material
+        markup = 100.0  
     else:
-        markup = 60.0   # Apenas venda, lucro na joia
+        markup = 60.0   
         
     preco_item = (valor + markup) * qtd
     preco_sugerido_total += preco_item
     total_joias_unidades += qtd
     
-    if nome:
-        info_joias_list.append(f"{qtd}x {nome}")
-    elif valor > 0:
-        info_joias_list.append(f"{qtd}x Joia ({categoria.split(' ')[0]})")
+    nome_exibicao = nome if nome else f"Joia ({categoria.split(' ')[0]})"
+    info_joias_list.append(f"{qtd}x {nome_exibicao} — R$ {preco_item:.2f}")
         
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -138,7 +134,6 @@ with colB:
 st.divider()
 st.subheader("💡 Resultado da Precificação")
 
-# Detecção automática de Desconto Promocional
 desconto_percentual = 0.0
 if total_joias_unidades == 2:
     desconto_percentual = 0.15
@@ -147,8 +142,8 @@ elif total_joias_unidades >= 3:
 
 usar_desconto = False
 if desconto_percentual > 0:
-    st.info("Múltiplas joias detectadas! O desconto será aplicado sobre o valor final de venda.")
-    usar_desconto = st.checkbox(f"🎁 Aplicar Desconto ({int(desconto_percentual*100)}% para {int(total_joias_unidades)} joias)", value=True)
+    st.info("Múltiplas joias detectadas! O desconto combo será aplicado sobre o valor final de venda.")
+    usar_desconto = st.checkbox(f"🎁 Aplicar Desconto Combo ({int(desconto_percentual*100)}% para {int(total_joias_unidades)} joias)", value=True)
 
 if usar_desconto:
     preco_final = truncar_dez_centavos(preco_sugerido_total * (1 - desconto_percentual))
@@ -156,6 +151,9 @@ if usar_desconto:
 else:
     preco_final = truncar_dez_centavos(preco_sugerido_total)
     texto_investimento = f"*R$ {preco_final:.2f}*"
+
+# Calcula os 5% de desconto exclusivo para o Pix em cima do valor final estabelecido
+preco_pix = truncar_dez_centavos(preco_final * 0.95)
 
 info_joia_str = ""
 if info_joias_list:
@@ -191,8 +189,9 @@ if preco_final >= 100.0:
     if info_joias_list:
         msg += f"{info_joia_str}"
     msg += f"\n✨ *Investimento Total:* {texto_investimento}\n\n"
-    msg += f"💳 *Pagamento (Pix ou Cartão sem juros):*\n"
-    msg += f"• À vista (Pix ou 1x no Cartão)\n"
+    msg += f"💳 *Formas de Pagamento:*\n"
+    msg += f"• Pix *(5% OFF)*: R$ {preco_pix:.2f}\n"
+    msg += f"• 1x no Cartão: R$ {preco_final:.2f}\n"
     msg += f"• 2x de R$ {preco_final/2:.2f} sem juros\n"
     msg += f"• 3x de R$ {preco_final/3:.2f} sem juros\n\n"
     msg += f"🔄 *Parcelamento estendido (com acréscimo da maquininha):*\n"
@@ -214,8 +213,10 @@ else:
     msg += f"📍 *Procedimento:* {procedimento if procedimento else 'Personalizado'}\n"
     if info_joias_list:
         msg += f"{info_joia_str}"
-    msg += f"\n✨ *Investimento:* {texto_investimento}\n"
-    msg += f"(Valor único para pagamento no Pix ou 1x no Cartão)\n\n"
+    msg += f"\n✨ *Investimento:* {texto_investimento}\n\n"
+    msg += f"💳 *Formas de Pagamento:*\n"
+    msg += f"• Pix *(5% OFF)*: R$ {preco_pix:.2f}\n"
+    msg += f"• 1x no Cartão: R$ {preco_final:.2f}\n\n"
     msg += f"🔄 *Opções de parcelamento no Cartão (com acréscimo da maquininha):*\n"
     for i in range(2, 4):
         total_cliente = preco_final * (1 + tx_repasse[i])
