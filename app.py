@@ -61,13 +61,6 @@ st.markdown(
         border-radius: 8px;
         font-weight: bold;
     }
-    .item-container {
-        background-color: rgba(255, 255, 255, 0.05);
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 15px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
     </style>
 """,
     unsafe_allow_html=True,
@@ -88,7 +81,6 @@ total_joias_unidades = 0
 info_joias_list = []
 
 for i in range(st.session_state.qtd_tipos_joias):
-    st.markdown(f"<div class='item-container'>", unsafe_allow_html=True)
     st.markdown(f"**Item {i+1}**")
     
     nome = st.text_input(f"Nome da Joia", placeholder="Ex: Argola Titânio...", key=f"nome_{i}")
@@ -120,7 +112,7 @@ for i in range(st.session_state.qtd_tipos_joias):
     nome_exibicao = nome if nome else f"Joia ({categoria.split(' ')[0]})"
     info_joias_list.append(f"{qtd}x {nome_exibicao} — R$ {formatar_moeda(preco_item)}")
     
-    st.markdown("</div>", unsafe_allow_html=True) 
+    st.markdown("---") 
 
 colA, colB = st.columns(2)
 with colA:
@@ -218,7 +210,7 @@ else:
     msg += f"📍 *Procedimento:* {procedimento if procedimento else 'Personalizado'}\n"
     if info_joias_list:
         msg += f"{info_joia_str}"
-    msg += f"{texto_aviso_desconto}\n✨ *Investimento Total:* {texto_investimento}\n\n"
+    msg += f"{texto_aviso_desconto}\n✨ *Investimento:* {texto_investimento}\n\n"
     msg += f"💳 *Formas de Pagamento:*\n"
     msg += f"• Pix *(5% OFF)*: R$ {formatar_moeda(preco_pix)}\n\n"
     msg += f"• 1x no Cartão: R$ {formatar_moeda(preco_final)}\n\n"
