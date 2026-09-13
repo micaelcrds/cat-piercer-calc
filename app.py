@@ -143,8 +143,10 @@ if desconto_percentual > 0:
     st.info("Múltiplas joias detectadas! O desconto combo será aplicado sobre o valor final de venda.")
     usar_desconto = st.checkbox(f"🎁 Aplicar Desconto Combo ({int(desconto_percentual*100)}% para {int(total_joias_unidades)} joias)", value=True)
 
+texto_aviso_desconto = ""
 if usar_desconto:
     preco_final = truncar_dez_centavos(preco_sugerido_total * (1 - desconto_percentual))
+    texto_aviso_desconto = f"🎁 *Você ganhou {int(desconto_percentual*100)}% de desconto!*\n"
     texto_investimento = f"De ~R$ {preco_sugerido_total:.2f}~ por *R$ {preco_final:.2f}*"
 else:
     preco_final = truncar_dez_centavos(preco_sugerido_total)
@@ -187,7 +189,7 @@ if preco_final >= 100.0:
     msg += f"📍 *Procedimento:* {procedimento if procedimento else 'Personalizado'}\n"
     if info_joias_list:
         msg += f"{info_joia_str}"
-    msg += f"\n✨ *Investimento Total:* {texto_investimento}\n\n"
+    msg += f"\n{texto_aviso_desconto}✨ *Investimento Total:* {texto_investimento}\n\n"
     msg += f"💳 *Formas de Pagamento:*\n"
     msg += f"• Pix *(5% OFF)*: R$ {preco_pix:.2f}\n"
     msg += f"• 1x no Cartão: R$ {preco_final:.2f}\n"
@@ -212,7 +214,7 @@ else:
     msg += f"📍 *Procedimento:* {procedimento if procedimento else 'Personalizado'}\n"
     if info_joias_list:
         msg += f"{info_joia_str}"
-    msg += f"\n✨ *Investimento:* {texto_investimento}\n\n"
+    msg += f"\n{texto_aviso_desconto}✨ *Investimento:* {texto_investimento}\n\n"
     msg += f"💳 *Formas de Pagamento:*\n"
     msg += f"• Pix *(5% OFF)*: R$ {preco_pix:.2f}\n"
     msg += f"• 1x no Cartão: R$ {preco_final:.2f}\n\n"
