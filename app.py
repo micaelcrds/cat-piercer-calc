@@ -61,6 +61,13 @@ st.markdown(
         border-radius: 8px;
         font-weight: bold;
     }
+    .item-container {
+        background-color: rgba(255, 255, 255, 0.05);
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
     </style>
 """,
     unsafe_allow_html=True,
@@ -81,6 +88,7 @@ total_joias_unidades = 0
 info_joias_list = []
 
 for i in range(st.session_state.qtd_tipos_joias):
+    st.markdown(f"<div class='item-container'>", unsafe_allow_html=True)
     st.markdown(f"**Item {i+1}**")
     
     nome = st.text_input(f"Nome da Joia", placeholder="Ex: Argola Titânio...", key=f"nome_{i}")
@@ -112,7 +120,7 @@ for i in range(st.session_state.qtd_tipos_joias):
     nome_exibicao = nome if nome else f"Joia ({categoria.split(' ')[0]})"
     info_joias_list.append(f"{qtd}x {nome_exibicao} — R$ {formatar_moeda(preco_item)}")
     
-    st.markdown("---") 
+    st.markdown("</div>", unsafe_allow_html=True) 
 
 colA, colB = st.columns(2)
 with colA:
@@ -142,7 +150,7 @@ if desconto_percentual > 0:
 texto_aviso_desconto = ""
 if usar_desconto:
     preco_final = truncar_dez_centavos(preco_sugerido_total * (1 - desconto_percentual))
-    texto_aviso_desconto = f"🎁 *Você ganhou {int(desconto_percentual*100)}% de desconto!*\n\n"
+    texto_aviso_desconto = f"\n🎁 *Você ganhou {int(desconto_percentual*100)}% de desconto!*\n"
     texto_investimento = f"De ~R$ {formatar_moeda(preco_sugerido_total)}~ por *R$ {formatar_moeda(preco_final)}*"
 else:
     preco_final = truncar_dez_centavos(preco_sugerido_total)
@@ -152,7 +160,7 @@ preco_pix = truncar_dez_centavos(preco_final * 0.95)
 
 info_joia_str = ""
 if info_joias_list:
-    info_joia_str = "\n💍 *Joias inclusas:*\n"
+    info_joia_str = "\n💎 *Joias inclusas:*\n"
     for joia in info_joias_list:
         info_joia_str += f" ▫️ {joia}\n"
 
@@ -181,11 +189,11 @@ if preco_final >= 100.0:
     </div>
     """, unsafe_allow_html=True)
     
-    msg = f"*Orçamento - Cat Piercer* 💎\n\n"
+    msg = f"*Orçamento - Cat Piercer* 🐈‍⬛\n\n"
     msg += f"📍 *Procedimento:* {procedimento if procedimento else 'Personalizado'}\n"
     if info_joias_list:
         msg += f"{info_joia_str}"
-    msg += f"\n{texto_aviso_desconto}✨ *Investimento Total:* {texto_investimento}\n\n"
+    msg += f"{texto_aviso_desconto}\n✨ *Investimento Total:* {texto_investimento}\n\n"
     msg += f"💳 *Formas de Pagamento:*\n"
     msg += f"• Pix *(5% OFF)*: R$ {formatar_moeda(preco_pix)}\n\n"
     msg += f"• 1x no Cartão: R$ {formatar_moeda(preco_final)}\n"
@@ -206,11 +214,11 @@ else:
     </div>
     """, unsafe_allow_html=True)
     
-    msg = f"*Orçamento - Cat Piercer* 💎\n\n"
+    msg = f"*Orçamento - Cat Piercer* 🐈‍⬛\n\n"
     msg += f"📍 *Procedimento:* {procedimento if procedimento else 'Personalizado'}\n"
     if info_joias_list:
         msg += f"{info_joia_str}"
-    msg += f"\n{texto_aviso_desconto}✨ *Investimento:* {texto_investimento}\n\n"
+    msg += f"{texto_aviso_desconto}\n✨ *Investimento Total:* {texto_investimento}\n\n"
     msg += f"💳 *Formas de Pagamento:*\n"
     msg += f"• Pix *(5% OFF)*: R$ {formatar_moeda(preco_pix)}\n\n"
     msg += f"• 1x no Cartão: R$ {formatar_moeda(preco_final)}\n\n"
