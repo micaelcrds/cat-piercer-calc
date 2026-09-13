@@ -57,13 +57,6 @@ st.markdown(
         border-radius: 8px;
         font-weight: bold;
     }
-    .item-container {
-        background-color: rgba(255, 255, 255, 0.05);
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 15px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
     </style>
 """,
     unsafe_allow_html=True,
@@ -84,7 +77,6 @@ total_joias_unidades = 0
 info_joias_list = []
 
 for i in range(st.session_state.qtd_tipos_joias):
-    st.markdown(f"<div class='item-container'>", unsafe_allow_html=True)
     st.markdown(f"**Item {i+1}**")
     
     nome = st.text_input(f"Nome da Joia", placeholder="Ex: Argola Titânio...", key=f"nome_{i}")
@@ -96,12 +88,10 @@ for i in range(st.session_state.qtd_tipos_joias):
     
     col1, col2 = st.columns(2)
     with col1:
-        # value=None inicia o campo vazio para facilitar a digitação sem apagar zeros
         valor = st.number_input(f"Custo da Joia (R$)", min_value=0.0, value=None, placeholder="0.00", step=5.0, key=f"valor_{i}")
     with col2:
         qtd = st.number_input(f"Quantidade", min_value=1, value=1, step=1, key=f"qtd_{i}")
     
-    # Aplica as regras de marcação baseadas na categoria
     if "Perfuração" in categoria:
         markup = 70.0
     elif "Atualização" in categoria:
@@ -117,8 +107,8 @@ for i in range(st.session_state.qtd_tipos_joias):
     
     nome_exibicao = nome if nome else f"Joia ({categoria.split(' ')[0]})"
     info_joias_list.append(f"{qtd}x {nome_exibicao} — R$ {preco_item:.2f}")
-        
-    st.markdown("</div>", unsafe_allow_html=True)
+    
+    st.markdown("---") # Adiciona uma linha divisória simples e nativa entre os itens
 
 colA, colB = st.columns(2)
 with colA:
