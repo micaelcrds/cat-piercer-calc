@@ -76,8 +76,6 @@ st.markdown("<h3 style='text-align: center; margin-top: 10px;'>Simulador de Pre�
 st.subheader("📝 Dados do Atendimento")
 procedimento = st.text_input("Nome do Procedimento", placeholder="Ex: Conch, Helix, Nostril...")
 
-st.markdown("#### 💎 Joias e Categorias")
-
 if 'qtd_tipos_joias' not in st.session_state:
     st.session_state.qtd_tipos_joias = 1
 
@@ -98,10 +96,12 @@ for i in range(st.session_state.qtd_tipos_joias):
     
     col1, col2 = st.columns(2)
     with col1:
-        valor = st.number_input(f"Custo da Joia (R$)", min_value=0.0, value=0.0, step=5.0, key=f"valor_{i}")
+        # value=None inicia o campo vazio para facilitar a digitação
+        valor = st.number_input(f"Custo da Joia (R$)", min_value=0.0, value=None, placeholder="0.00", step=5.0, key=f"valor_{i}")
     with col2:
         qtd = st.number_input(f"Quantidade", min_value=1, value=1, step=1, key=f"qtd_{i}")
     
+    # Restaura as regras de marcação baseadas na categoria
     if "Perfuração" in categoria:
         markup = 70.0
     elif "Atualização" in categoria:
@@ -109,7 +109,9 @@ for i in range(st.session_state.qtd_tipos_joias):
     else:
         markup = 0.0
         
-    preco_item = (valor + markup) * qtd
+    valor_calc = valor if valor is not None else 0.0
+    preco_item = (valor_calc + markup) * qtd
+    
     preco_sugerido_total += preco_item
     total_joias_unidades += qtd
     
@@ -146,7 +148,6 @@ if desconto_percentual > 0:
 texto_aviso_desconto = ""
 if usar_desconto:
     preco_final = truncar_dez_centavos(preco_sugerido_total * (1 - desconto_percentual))
-    # Adicionado um \n extra aqui para criar o espaçamento
     texto_aviso_desconto = f"🎁 *Você ganhou {int(desconto_percentual*100)}% de desconto!*\n\n"
     texto_investimento = f"De ~R$ {preco_sugerido_total:.2f}~ por *R$ {preco_final:.2f}*"
 else:
@@ -192,7 +193,7 @@ if preco_final >= 100.0:
         msg += f"{info_joia_str}"
     msg += f"\n{texto_aviso_desconto}✨ *Investimento Total:* {texto_investimento}\n\n"
     msg += f"💳 *Formas de Pagamento:*\n"
-    msg += f"• Pix *(5% OFF)*: R$ {preco_pix:.2f}\n"
+    msg += f"• Pix *(5% OFF)*: R$ {preco_pix:.2f}\n\n"
     msg += f"• 1x no Cartão: R$ {preco_final:.2f}\n"
     msg += f"• 2x de R$ {preco_final/2:.2f} sem juros\n"
     msg += f"• 3x de R$ {preco_final/3:.2f} sem juros\n\n"
@@ -217,7 +218,7 @@ else:
         msg += f"{info_joia_str}"
     msg += f"\n{texto_aviso_desconto}✨ *Investimento:* {texto_investimento}\n\n"
     msg += f"💳 *Formas de Pagamento:*\n"
-    msg += f"• Pix *(5% OFF)*: R$ {preco_pix:.2f}\n"
+    msg += f"• Pix *(5% OFF)*: R$ {preco_pix:.2f}\n\n"
     msg += f"• 1x no Cartão: R$ {preco_final:.2f}\n\n"
     msg += f"🔄 *Opções de parcelamento no Cartão (com acréscimo da maquininha):*\n"
     for i in range(2, 4):
